@@ -1,0 +1,12 @@
+{
+  "name": "蜡笔小新牛逼模型",
+  "short_name": "蜡笔小新牛逼",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0b0f",
+  "theme_color": "#b00000",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
