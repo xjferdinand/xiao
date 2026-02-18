@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#b00000" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="蜡笔小新牛逼">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <title>蜡笔小新牛逼模型</title>
+  <style>
+    :root{
+      --bg:#0b0b0f; --card:#11111a; --line:rgba(255,255,255,.10);
+      --text:#f5f5f7; --muted:rgba(255,255,255,.65);
+      --red:#ff2d2d; --red2:#b00000;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:
+        radial-gradient(800px 400px at 50% 20%, rgba(255,45,45,.18), transparent 60%),
+        radial-gradient(900px 500px at 50% 120%, rgba(176,0,0,.22), transparent 60%),
+        var(--bg);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+      color:var(--text);
+      padding:18px;
+    }
+    .app{width:min(520px,100%);}
+    .title{
+      font-size:22px;font-weight:900;letter-spacing:.5px;margin:0 0 12px;
+      display:flex;align-items:center;gap:10px;
+    }
+    .title::before{
+      content:"";width:10px;height:10px;border-radius:50%;
+      background:var(--red);box-shadow:0 0 18px rgba(255,45,45,.8);
+    }
+    .panel{
+      background:linear-gradient(180deg, rgba(255,45,45,.08), transparent 50%), var(--card);
+      border:1px solid var(--line);border-radius:18px;padding:16px;
+      box-shadow:0 18px 60px rgba(0,0,0,.55);
+    }
+    input{
+      width:100%;padding:14px 14px;font-size:20px;border-radius:14px;
+      border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--text);outline:none;
+    }
+    input:focus{border-color:rgba(255,45,45,.6);box-shadow:0 0 0 3px rgba(255,45,45,.15);}
+    button{
+      width:100%;margin-top:10px;padding:12px 14px;font-size:16px;font-weight:900;
+      border-radius:14px;border:1px solid rgba(255,45,45,.55);
+      background:linear-gradient(180deg, rgba(255,45,45,.95), rgba(176,0,0,.95));
+      color:#fff;cursor:pointer;
+    }
+    button:active{transform:translateY(1px);}
+    .msg{margin-top:10px;font-size:13px;color:var(--muted);min-height:18px;}
+    .seatWrap{
+      margin-top:12px;padding:14px;border-radius:16px;
+      border:1px dashed rgba(255,45,45,.35);background:rgba(255,45,45,.06);text-align:center;
+      display:none;
+    }
+    .seat{font-size:56px;font-weight:1000;letter-spacing:1px;color:var(--red);text-shadow:0 0 18px rgba(255,45,45,.35);}
+    .sub{margin-top:4px;font-size:13px;color:var(--muted);}
+    .tiny{margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="title">蜡笔小新牛逼模型</div>
+    <div class="panel">
+      <input id="room" inputmode="numeric" placeholder="输入5位房号" maxlength="5" />
+      <button id="go">开干</button>
+
+      <div class="msg" id="msg"></div>
+
+      <div class="seatWrap" id="seatWrap">
+        <div class="seat" id="seat">—</div>
+        <div class="sub" id="sub">—</div>
+      </div>
+
+      <div class="tiny">
+        公式：<code>V=-4A-3B-2C-3D-E-5</code>，<code>座位=(V mod 5)+2</code>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // 真取模：永远 0..m-1
+  const mod = (n,m)=>((n % m) + m) % m;
+
+  function calcSeat(room5){
+    const A=+room5[0], B=+room5[1], C=+room5[2], D=+room5[3], E=+room5[4];
+    const V = -4*A -3*B -2*C -3*D -E -5;
+    const r = mod(V, 5);
+    return {A,B,C,D,E,V,r,seat:r+2};
+  }
+
+  const roomEl = document.getElementById("room");
+  const goEl = document.getElementById("go");
+  const msgEl = document.getElementById("msg");
+  const seatWrapEl = document.getElementById("seatWrap");
+  const seatEl = document.getElementById("seat");
+  const subEl = document.getElementById("sub");
+
+  function run(){
+    const s = roomEl.value.trim().replace(/\s+/g,"");
+    if(!/^\d{5}$/.test(s)){
+      msgEl.textContent = "请输入正确的5位数字（例如：51330）";
+      seatWrapEl.style.display = "none";
+      return;
+    }
+    const out = calcSeat(s);
+    msgEl.textContent = "";
+    seatWrapEl.style.display = "block";
+    seatEl.textContent = out.seat + "号";
+    subEl.textContent = `V=${out.V} ｜ V mod 5=${out.r}`;
+
+    // 自动清空 + 继续输入
+    setTimeout(()=>{ roomEl.value=""; roomEl.focus(); }, 250);
+  }
+
+  goEl.addEventListener("click", run);
+  roomEl.addEventListener("keydown", e => { if(e.key==="Enter") run(); });
+  roomEl.focus();
+
+  // 注册离线（可选但推荐）
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js"));
+  }
+</script>
+</body>
+</html>
