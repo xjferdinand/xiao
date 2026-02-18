@@ -1,11 +1,12 @@
-const CACHE_NAME = "xj-model-v1";
+const CACHE_NAME = "nb-model-pack-v2"; // ← 改这个版本号很关键
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./sw.js",
+  "./icons/icon-180.png",
   "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-180.png"
+  "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -15,7 +16,9 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.map(k => (k===CACHE_NAME?null:caches.delete(k)))))
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => (k === CACHE_NAME ? null : caches.delete(k))))
+    )
   );
   self.clients.claim();
 });
