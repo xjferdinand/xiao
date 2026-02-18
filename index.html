@@ -6,15 +6,16 @@
   <meta name="theme-color" content="#b00000" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="蜡笔小新牛逼">
+  <meta name="apple-mobile-web-app-title" content="牛逼模型合集">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <title>蜡笔小新牛逼模型</title>
+  <title>牛逼模型合集</title>
+
   <style>
     :root{
       --bg:#0b0b0f; --card:#11111a; --line:rgba(255,255,255,.10);
       --text:#f5f5f7; --muted:rgba(255,255,255,.65);
-      --red:#ff2d2d; --red2:#b00000;
+      --red:#ff2d2d; --red2:#b00000; --green:#2dff7a; --amber:#ffcc33;
     }
     *{box-sizing:border-box}
     body{
@@ -27,7 +28,7 @@
       color:var(--text);
       padding:18px;
     }
-    .app{width:min(520px,100%);}
+    .app{width:min(720px,100%);}
     .title{
       font-size:22px;font-weight:900;letter-spacing:.5px;margin:0 0 12px;
       display:flex;align-items:center;gap:10px;
@@ -54,80 +55,238 @@
     }
     button:active{transform:translateY(1px);}
     .msg{margin-top:10px;font-size:13px;color:var(--muted);min-height:18px;}
-    .seatWrap{
-      margin-top:12px;padding:14px;border-radius:16px;
-      border:1px dashed rgba(255,45,45,.35);background:rgba(255,45,45,.06);text-align:center;
-      display:none;
+
+    .grid{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
     }
-    .seat{font-size:56px;font-weight:1000;letter-spacing:1px;color:var(--red);text-shadow:0 0 18px rgba(255,45,45,.35);}
-    .sub{margin-top:4px;font-size:13px;color:var(--muted);}
+    @media (max-width: 620px){
+      .grid{grid-template-columns:1fr;}
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.03);
+      padding:12px 12px;
+    }
+    .cardHead{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      margin-bottom:8px;
+    }
+    .name{
+      font-weight:900;letter-spacing:.3px;font-size:14px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:rgba(255,255,255,.35);
+      box-shadow:0 0 14px rgba(255,255,255,.12);
+    }
+    .seatBig{
+      font-size:34px;font-weight:1000;color:var(--red);
+      text-shadow:0 0 18px rgba(255,45,45,.28);
+      line-height:1;
+    }
+    .meta{
+      margin-top:6px;font-size:12px;color:var(--muted);
+      display:flex;flex-wrap:wrap;gap:8px;
+    }
+    .tag{
+      font-size:11px;padding:4px 8px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.25);
+      color:rgba(255,255,255,.75);
+    }
+    .tag.green{border-color:rgba(45,255,122,.25); color:rgba(45,255,122,.9); background:rgba(45,255,122,.06);}
+    .tag.amber{border-color:rgba(255,204,51,.25); color:rgba(255,204,51,.95); background:rgba(255,204,51,.06);}
     .tiny{margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)}
     code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
   </style>
 </head>
+
 <body>
   <div class="app">
-    <div class="title">蜡笔小新牛逼模型</div>
+    <div class="title">牛逼模型合集（一个输入框，多账号同出）</div>
+
     <div class="panel">
-      <input id="room" inputmode="numeric" placeholder="输入5位房号" maxlength="5" />
+      <input id="room" inputmode="numeric" placeholder="输入5位房号（例如：51330）" maxlength="5" />
       <button id="go">开干</button>
 
       <div class="msg" id="msg"></div>
 
-      <div class="seatWrap" id="seatWrap">
-        <div class="seat" id="seat">—</div>
-        <div class="sub" id="sub">—</div>
+      <div class="grid" id="grid" style="display:none;">
+        <!-- cards injected by JS -->
       </div>
 
       <div class="tiny">
-        公式：<code>V=-4A-3B-2C-3D-E-5</code>，<code>座位=(V mod 5)+2</code>
+        说明：所有 <code>mod 5</code> 使用真取模 <code>((n%5)+5)%5</code>，保证余数永远是 0~4。
       </div>
     </div>
   </div>
 
-<script>
-  // 真取模：永远 0..m-1
-  const mod = (n,m)=>((n % m) + m) % m;
+  <script>
+    // 真取模：永远 0..m-1
+    const mod = (n,m)=>((n % m) + m) % m;
 
-  function calcSeat(room5){
-    const A=+room5[0], B=+room5[1], C=+room5[2], D=+room5[3], E=+room5[4];
-    const V = -4*A -3*B -2*C -3*D -E -5;
-    const r = mod(V, 5);
-    return {A,B,C,D,E,V,r,seat:r+2};
-  }
-
-  const roomEl = document.getElementById("room");
-  const goEl = document.getElementById("go");
-  const msgEl = document.getElementById("msg");
-  const seatWrapEl = document.getElementById("seatWrap");
-  const seatEl = document.getElementById("seat");
-  const subEl = document.getElementById("sub");
-
-  function run(){
-    const s = roomEl.value.trim().replace(/\s+/g,"");
-    if(!/^\d{5}$/.test(s)){
-      msgEl.textContent = "请输入正确的5位数字（例如：51330）";
-      seatWrapEl.style.display = "none";
-      return;
+    // 解析ABCDE
+    function parseABCDE(room5){
+      const A=+room5[0], B=+room5[1], C=+room5[2], D=+room5[3], E=+room5[4];
+      return {A,B,C,D,E};
     }
-    const out = calcSeat(s);
-    msgEl.textContent = "";
-    seatWrapEl.style.display = "block";
-    seatEl.textContent = out.seat + "号";
-    subEl.textContent = `V=${out.V} ｜ V mod 5=${out.r}`;
 
-    // 自动清空 + 继续输入
-    setTimeout(()=>{ roomEl.value=""; roomEl.focus(); }, 250);
-  }
+    // 计算重号个数 rep = 5 - 不同数字个数
+    function calcRep(room5){
+      const set = new Set(room5.split(""));
+      return 5 - set.size;
+    }
 
-  goEl.addEventListener("click", run);
-  roomEl.addEventListener("keydown", e => { if(e.key==="Enter") run(); });
-  roomEl.focus();
+    // ===== 各账号模型 =====
 
-  // 注册离线（可选但推荐）
-  if("serviceWorker" in navigator){
-    window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js"));
-  }
-</script>
+    // 蜡笔小新牛逼模型
+    // V = -4A - 3B - 2C - 3D - E - 5
+    // seat = (V mod 5) + 2
+    function model_xj(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const V = -4*A -3*B -2*C -3*D -E -5;
+      const r = mod(V, 5);
+      return { seat:r+2, extra:`V=${V}｜V mod 5=${r}` };
+    }
+
+    // 梦见牛逼模型
+    // S = 2A + C + D + E
+    // V = B - S
+    // seat = (V mod 5) + 2
+    function model_mj(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const S = 2*A + C + D + E;
+      const V = B - S;
+      const r = mod(V, 5);
+      return { seat:r+2, extra:`S=${S}｜V=${V}｜V mod 5=${r}` };
+    }
+
+    // 呵呵呵牛逼模型 - 模型A（2/3主力，但仍输出2~6）
+    // V2 = B + C + 2D - 2E - 2
+    // seat2 = (V2 mod 5) + 2
+    function model_hhh_A(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const V2 = B + C + 2*D - 2*E - 2;
+      const r = mod(V2, 5);
+      return { seat:r+2, extra:`V₂=${V2}｜V₂ mod 5=${r}` };
+    }
+
+    // 呵呵呵牛逼模型 - 模型B（只负责 4 / 5）
+    // rep = 5 - 不同数字个数
+    // par = 1 (D与E同奇偶) else 0
+    // S = A + B + C + D + rep + par
+    // S偶数->4号, S奇数->5号
+    function model_hhh_B(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const rep = calcRep(room5);
+      const par = ((D % 2) === (E % 2)) ? 1 : 0;
+      const S = A + B + C + D + rep + par;
+      const seat = (S % 2 === 0) ? 4 : 5;
+      return { seat, extra:`rep=${rep}｜par=${par}｜S=${S}｜S%2=${S%2}` };
+    }
+
+    // 八戒牛逼模型 vFinal
+    // F = A+B+C+E ; R = F mod5 ; seat = R+2
+    // 强信号：max(B,C,D,E) >= 8
+    function model_bj(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const F = A + B + C + E;
+      const R = mod(F, 5);
+      const seat = R + 2;
+      const mx = Math.max(B,C,D,E);
+      const strong = mx >= 8;
+      return {
+        seat,
+        extra:`F=${F}｜F mod 5=${R}｜max(BCDE)=${mx}`,
+        tags: [ strong ? {t:"🔥 强信号（可加仓）", cls:"green"} : {t:"普通信号（正常仓）", cls:""} ]
+      };
+    }
+
+    // 偏爱牛逼模型
+    // V = -2A - B + 2C - D + 2E - 2
+    // seat = (V mod5) +2
+    function model_py(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const V = -2*A - B + 2*C - D + 2*E - 2;
+      const r = mod(V, 5);
+      return { seat:r+2, extra:`V=${V}｜V mod 5=${r}` };
+    }
+
+    // ===== UI 渲染 =====
+    const roomEl = document.getElementById("room");
+    const goEl = document.getElementById("go");
+    const msgEl = document.getElementById("msg");
+    const gridEl = document.getElementById("grid");
+
+    function cardHTML({name, seatText, extra, tags=[]}){
+      const tagHTML = tags.map(x => `<span class="tag ${x.cls||""}">${x.t}</span>`).join("");
+      return `
+        <div class="card">
+          <div class="cardHead">
+            <div class="name"><span class="dot"></span>${name}</div>
+            <div class="seatBig">${seatText}</div>
+          </div>
+          <div class="meta">
+            <span class="tag">${extra}</span>
+            ${tagHTML}
+          </div>
+        </div>
+      `;
+    }
+
+    function run(){
+      const s = roomEl.value.trim().replace(/\s+/g,"");
+      if(!/^\d{5}$/.test(s)){
+        msgEl.textContent = "请输入正确的5位数字（例如：51330）";
+        gridEl.style.display = "none";
+        gridEl.innerHTML = "";
+        return;
+      }
+
+      msgEl.textContent = "";
+      gridEl.style.display = "grid";
+
+      const xj = model_xj(s);
+      const mj = model_mj(s);
+      const hA = model_hhh_A(s);
+      const hB = model_hhh_B(s);
+      const bj = model_bj(s);
+      const py = model_py(s);
+
+      // 呵呵呵：额外提示它的两组用途（23主力、45口诀）
+      const hTagsA = [
+        {t:"模型A：2/3主力参考", cls:"amber"},
+        ((hA.seat===2||hA.seat===3) ? {t:"✅落在2/3", cls:"green"} : {t:"非2/3（仍输出）", cls:""} )
+      ];
+      const hTagsB = [{t:"模型B：只出4/5对冲", cls:"amber"}];
+
+      gridEl.innerHTML = [
+        cardHTML({name:"蜡笔小新", seatText: `${xj.seat}号`, extra: xj.extra}),
+        cardHTML({name:"梦见", seatText: `${mj.seat}号`, extra: mj.extra}),
+        cardHTML({name:"呵呵呵（模型A）", seatText: `${hA.seat}号`, extra: hA.extra, tags: hTagsA}),
+        cardHTML({name:"呵呵呵（模型B）", seatText: `${hB.seat}号`, extra: hB.extra, tags: hTagsB}),
+        cardHTML({name:"八戒", seatText: `${bj.seat}号`, extra: bj.extra, tags: bj.tags || []}),
+        cardHTML({name:"偏爱", seatText: `${py.seat}号`, extra: py.extra})
+      ].join("");
+
+      // 自动清空 + 继续输入
+      setTimeout(()=>{ roomEl.value=""; roomEl.focus(); }, 250);
+    }
+
+    goEl.addEventListener("click", run);
+    roomEl.addEventListener("keydown", e => { if(e.key==="Enter") run(); });
+    roomEl.focus();
+
+    // 注册离线
+    if("serviceWorker" in navigator){
+      window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js"));
+    }
+  </script>
 </body>
 </html>
