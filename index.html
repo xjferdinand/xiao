@@ -6,16 +6,16 @@
   <meta name="theme-color" content="#b00000" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="八戒牛逼">
+  <meta name="apple-mobile-web-app-title" content="牛逼模型合集">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <title>八戒牛逼模型</title>
+  <title>牛逼模型合集</title>
 
   <style>
     :root{
       --bg:#0b0b0f; --card:#11111a; --line:rgba(255,255,255,.10);
       --text:#f5f5f7; --muted:rgba(255,255,255,.65);
-      --red:#ff2d2d; --red2:#b00000;
+      --red:#ff2d2d; --red2:#b00000; --green:#2dff7a; --amber:#ffcc33;
     }
     *{box-sizing:border-box}
     body{
@@ -28,7 +28,7 @@
       color:var(--text);
       padding:18px;
     }
-    .app{width:min(680px,100%);}
+    .app{width:min(860px,100%);}
     .title{
       font-size:22px;font-weight:900;letter-spacing:.5px;margin:0 0 12px;
       display:flex;align-items:center;gap:10px;
@@ -42,291 +42,545 @@
       border:1px solid var(--line);border-radius:18px;padding:16px;
       box-shadow:0 18px 60px rgba(0,0,0,.55);
     }
+
     input{
       width:100%;padding:14px 14px;font-size:20px;border-radius:14px;
       border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--text);outline:none;
     }
     input:focus{border-color:rgba(255,45,45,.6);box-shadow:0 0 0 3px rgba(255,45,45,.15);}
+
+    .row{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;}
     button{
-      width:100%;margin-top:10px;padding:12px 14px;font-size:16px;font-weight:900;
+      flex:1;
+      min-width:140px;
+      padding:12px 14px;font-size:15px;font-weight:900;
       border-radius:14px;border:1px solid rgba(255,45,45,.55);
       background:linear-gradient(180deg, rgba(255,45,45,.95), rgba(176,0,0,.95));
       color:#fff;cursor:pointer;
     }
     button:active{transform:translateY(1px);}
-    .msg{margin-top:10px;font-size:13px;color:var(--muted);min-height:18px;}
-    .seatWrap{
-      margin-top:12px;padding:14px;border-radius:16px;
-      border:1px dashed rgba(255,45,45,.35);background:rgba(255,45,45,.06);text-align:center;
-      display:none;
+    .btnGhost{
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:rgba(255,255,255,.9);
     }
-    .seat{font-size:56px;font-weight:1000;letter-spacing:1px;color:var(--red);text-shadow:0 0 18px rgba(255,45,45,.35);}
-    .sub{margin-top:6px;font-size:13px;color:var(--muted);white-space:pre-line;}
+    .btnDanger{
+      background:rgba(255,45,45,.10);
+      border:1px solid rgba(255,45,45,.35);
+      color:#fff;
+    }
+    .msg{margin-top:10px;font-size:13px;color:var(--muted);min-height:18px;}
+
+    .grid{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
+    }
+    @media (max-width: 720px){ .grid{grid-template-columns:1fr;} }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.03);
+      padding:12px 12px;
+    }
+    .cardHead{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      margin-bottom:8px;
+    }
+    .name{
+      font-weight:900;letter-spacing:.3px;font-size:14px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);box-shadow:0 0 14px rgba(255,255,255,.12);}
+    .seatBig{
+      font-size:34px;font-weight:1000;color:var(--red);
+      text-shadow:0 0 18px rgba(255,45,45,.28);
+      line-height:1;
+    }
+    .meta{
+      margin-top:6px;font-size:12px;color:var(--muted);
+      display:flex;flex-wrap:wrap;gap:8px;
+    }
+    .tag{
+      font-size:11px;padding:4px 8px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.25);
+      color:rgba(255,255,255,.75);
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .tag.green{border-color:rgba(45,255,122,.25); color:rgba(45,255,122,.9); background:rgba(45,255,122,.06);}
+    .tag.amber{border-color:rgba(255,204,51,.25); color:rgba(255,204,51,.95); background:rgba(255,204,51,.06);}
+
+    .history{
+      margin-top:14px;
+      border-top:1px solid var(--line);
+      padding-top:14px;
+    }
+    .hTitle{
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .hTitle h3{
+      margin:0; font-size:14px; font-weight:900; letter-spacing:.3px; color:rgba(255,255,255,.9);
+      display:flex; align-items:center; gap:8px;
+    }
+    .hTitle h3::before{content:""; width:8px;height:8px;border-radius:50%; background:rgba(255,255,255,.35);}
+    .hActions{display:flex; gap:10px; flex-wrap:wrap;}
+    .hActions button{min-width:auto; flex:0 0 auto; padding:10px 12px; font-size:13px; border-radius:12px;}
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(0,0,0,.18);
+    }
+    thead th{
+      text-align:left;
+      font-size:12px;
+      color:rgba(255,255,255,.75);
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+    tbody td{
+      padding:10px 10px;
+      font-size:12px;
+      color:rgba(255,255,255,.86);
+      border-bottom:1px solid rgba(255,255,255,.06);
+      vertical-align:top;
+    }
+    tbody tr:last-child td{border-bottom:none;}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;}
+    .del{
+      cursor:pointer;
+      color:rgba(255,45,45,.95);
+      border:1px solid rgba(255,45,45,.35);
+      background:rgba(255,45,45,.08);
+      padding:6px 10px;
+      border-radius:10px;
+      font-weight:900;
+      font-size:12px;
+      display:inline-block;
+      user-select:none;
+    }
     .tiny{margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)}
     code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-
-    /* 记录表 */
-    .history{
-      margin-top:14px;border-top:1px solid var(--line);padding-top:14px;
-    }
-    .historyHead{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;
-    }
-    .historyTitle{font-size:14px;font-weight:900;color:rgba(255,255,255,.85);}
-    .ghostBtn{
-      padding:8px 10px;font-size:12px;border-radius:12px;border:1px solid var(--line);
-      background:rgba(0,0,0,.25);color:#fff;cursor:pointer;
-    }
-    .ghostBtn:active{transform:translateY(1px);}
-    .tableWrap{
-      overflow:auto;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.18);
-    }
-    table{width:100%;border-collapse:collapse;min-width:520px;}
-    th, td{
-      padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);
-      font-size:13px;text-align:left;white-space:nowrap;
-    }
-    th{color:rgba(255,255,255,.75);font-weight:900;background:rgba(255,255,255,.03);}
-    tr:last-child td{border-bottom:none;}
-    .pill{
-      display:inline-block;padding:2px 8px;border-radius:999px;
-      border:1px solid rgba(255,45,45,.35);background:rgba(255,45,45,.10);
-      color:rgba(255,255,255,.9);font-weight:900;
-    }
-    .pillSkip{
-      border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);
-    }
   </style>
 </head>
 
 <body>
   <div class="app">
-    <div class="title">八戒牛逼模型（含偏移）</div>
+    <div class="title">牛逼模型合集（带战绩记录）</div>
 
     <div class="panel">
-      <input id="room" inputmode="numeric" placeholder="输入5位房号" maxlength="5" />
-      <button id="go">开干</button>
+      <input id="room" inputmode="numeric" placeholder="输入5位房号（例如：51330）" maxlength="5" />
+      <div class="row">
+        <button id="go">开干</button>
+        <button class="btnGhost" id="copyLast">复制本次结果</button>
+      </div>
 
       <div class="msg" id="msg"></div>
 
-      <div class="seatWrap" id="seatWrap">
-        <div class="seat" id="seat">—</div>
-        <div class="sub" id="sub">—</div>
-      </div>
-
-      <div class="tiny">
-        规则摘要：
-        <code>A=E</code> 跳；
-        主公式 <code>F=A+B+C+E</code>，<code>seat0=(F mod 5)+2</code>；
-        <code>r=(S-X) mod 5</code>，仅 <code>r∈{0,1}</code> 偏移（优先 r=4，其次 r=3，失败=跳）；
-        毒点触发二次偏移（2看B=8、3看C=6、4看D=3、5看E=8/0；避不开=跳）。
-      </div>
+      <div class="grid" id="grid" style="display:none;"></div>
 
       <div class="history">
-        <div class="historyHead">
-          <div class="historyTitle">最近预测记录（自动保存）</div>
-          <button class="ghostBtn" id="clearHistory">清空记录</button>
+        <div class="hTitle">
+          <h3>战绩记录（本机保存）</h3>
+          <div class="hActions">
+            <button class="btnGhost" id="copyAll">复制全部</button>
+            <button class="btnGhost" id="exportCsv">导出CSV</button>
+            <button class="btnDanger" id="clearAll">清空</button>
+          </div>
         </div>
-        <div class="tableWrap">
+
+        <div style="max-height:320px; overflow:auto; border-radius:14px;">
           <table>
             <thead>
               <tr>
-                <th>时间</th>
-                <th>房号</th>
-                <th>预测</th>
+                <th style="width:110px;">时间</th>
+                <th style="width:86px;">房号</th>
+                <th>蜡笔小新</th>
+                <th>梦见</th>
+                <th>呵呵呵A</th>
+                <th>呵呵呵B</th>
+                <th>八戒</th>
+                <th>偏爱</th>
+                <th style="width:70px;">操作</th>
               </tr>
             </thead>
-            <tbody id="historyBody"></tbody>
+            <tbody id="histBody">
+              <tr><td colspan="9" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
 
+      <div class="tiny">
+        真取模：<code>((n%5)+5)%5</code>。呵呵呵输出两组：A(2/3主力) + B(4/5口诀)。八戒强信号只影响仓位不改位。
+      </div>
     </div>
   </div>
 
   <script>
-    // 真取模：永远 0..m-1
+    // ====== 基础工具 ======
     const mod = (n,m)=>((n % m) + m) % m;
 
-    // ===== 八戒牛逼模型（含偏移 + A=E跳 + 偏移失败=跳 + 毒点二次偏移） =====
-    function calcBajie(room5){
+    function parseABCDE(room5){
       const A=+room5[0], B=+room5[1], C=+room5[2], D=+room5[3], E=+room5[4];
-
-      // 规则0：A=E 跳
-      if(A === E){
-        return { seatText:"跳", detail:`A=E（${A}=${E}）→ 默认跳过` };
-      }
-
-      // 主公式
-      const F = A + B + C + E;
-      const seat0 = mod(F,5) + 2; // 2..6
-
-      // 增强层
-      const S = A + B + C + D + E;
-
-      // X按座位取：2->A,3->B,4->C,5->D,6->E
-      const pickX = (seat)=>{
-        if(seat===2) return A;
-        if(seat===3) return B;
-        if(seat===4) return C;
-        if(seat===5) return D;
-        return E; // 6
-      };
-      const rForSeat = (seat)=>mod(S - pickX(seat), 5);
-
-      // 毒点（BCDE→2345 口径）
-      const isToxic = (seat)=>{
-        if(seat===2) return (B===8);            // 2号看B
-        if(seat===3) return (C===6);            // 3号看C
-        if(seat===4) return (D===3);            // 4号看D
-        if(seat===5) return (E===8 || E===0);   // 5号看E
-        return false; // 6号暂不设
-      };
-
-      const candidatesNear = (baseSeat)=>{
-        const cand=[];
-        const pushIf=(x)=>{ if(x>=2 && x<=6 && !cand.includes(x)) cand.push(x); };
-        pushIf(baseSeat+1); pushIf(baseSeat-1);
-        pushIf(baseSeat+2); pushIf(baseSeat-2);
-        return cand;
-      };
-
-      // Step 1：r偏移（仅 r=0/1 才偏移；失败=跳）
-      const r0 = rForSeat(seat0);
-      let seat1 = seat0;
-      let moved1 = false;
-
-      if(r0===0 || r0===1){
-        const cand = candidatesNear(seat0);
-
-        let best = null;
-        for(const s of cand){ if(rForSeat(s)===4){ best=s; break; } }
-        if(best===null){
-          for(const s of cand){ if(rForSeat(s)===3){ best=s; break; } }
-        }
-        if(best===null){
-          return { seatText:"跳", detail:`seat0=${seat0} r0=${r0} → 偏移失败（无 r=4/3）` };
-        }
-        seat1 = best;
-        moved1 = (seat1 !== seat0);
-      }
-
-      // Step 2：毒点二次偏移（踩毒就偏；避不开=跳）
-      let seatF = seat1;
-      let moved2 = false;
-
-      if(isToxic(seatF)){
-        const cand2 = candidatesNear(seatF);
-
-        const pickBestNoToxic = (targetR)=>{
-          for(const s of cand2){
-            if(!isToxic(s) && rForSeat(s)===targetR) return s;
-          }
-          return null;
-        };
-
-        let best2 = pickBestNoToxic(4);
-        if(best2===null) best2 = pickBestNoToxic(3);
-        if(best2===null) best2 = pickBestNoToxic(2);
-
-        if(best2===null){
-          return { seatText:"跳", detail:`命中毒点（seat=${seatF}）→ 二次偏移失败 → 跳` };
-        }
-        seatF = best2;
-        moved2 = (seatF !== seat1);
-      }
-
-      const rf = rForSeat(seatF);
-
-      // 输出详情（多行，方便你核对）
-      const notes = [];
-      notes.push(`seat0=${seat0} r0=${r0}`);
-      if(moved1) notes.push(`r偏移：${seat0}→${seat1}（r=${rForSeat(seat1)}）`);
-      if(isToxic(seat1)) notes.push(`毒点触发：seat=${seat1}`);
-      if(moved2) notes.push(`毒偏移：${seat1}→${seatF}（r=${rf}）`);
-      if(!moved1 && !moved2) notes.push(`不偏移 → r=${rf}`);
-
-      return { seatText: `${seatF}号`, detail: notes.join("\n") };
+      return {A,B,C,D,E};
     }
 
-    // ===== 记录（自动保存） =====
-    const HISTORY_KEY = "bajie_history_v1";
-    const HISTORY_MAX = 60;
+    function calcRep(room5){
+      const set = new Set(room5.split(""));
+      return 5 - set.size;
+    }
 
+    function fmtTime(ts){
+      const d = new Date(ts);
+      const pad = (x)=>String(x).padStart(2,"0");
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // ====== 各账号模型 ======
+
+    // 蜡笔小新：V=-4A-3B-2C-3D-E-5
+    function model_xj(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const V = -4*A -3*B -2*C -3*D -E -5;
+      const r = mod(V, 5);
+      return { seat:r+2, extra:`V=${V}｜V mod 5=${r}` };
+    }
+
+    // 梦见：S=2A+C+D+E；V=B-S
+    function model_mj(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const S = 2*A + C + D + E;
+      const V = B - S;
+      const r = mod(V, 5);
+      return { seat:r+2, extra:`S=${S}｜V=${V}｜V mod 5=${r}` };
+    }
+
+    // 呵呵呵A：V2=B+C+2D-2E-2
+    function model_hhh_A(room5){
+      const {B,C,D,E} = parseABCDE(room5);
+      const V2 = B + C + 2*D - 2*E - 2;
+      const r = mod(V2, 5);
+      return { seat:r+2, extra:`V₂=${V2}｜V₂ mod 5=${r}` };
+    }
+
+    // 呵呵呵B：rep=5-不同数，par=1(同奇偶)否则0；S=A+B+C+D+rep+par；偶4奇5
+    function model_hhh_B(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const rep = calcRep(room5);
+      const par = ((D % 2) === (E % 2)) ? 1 : 0;
+      const S = A + B + C + D + rep + par;
+      const seat = (S % 2 === 0) ? 4 : 5;
+      return { seat, extra:`rep=${rep}｜par=${par}｜S=${S}｜S%2=${S%2}` };
+    }
+
+    // 八戒：F=A+B+C+E；seat=(F mod5)+2；强信号 max(BCDE)>=8
+    function model_bj(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const F = A + B + C + E;
+      const r = mod(F, 5);
+      const seat = r + 2;
+      const mx = Math.max(B,C,D,E);
+      const strong = mx >= 8;
+      return {
+        seat,
+        extra:`F=${F}｜F mod 5=${r}｜max(BCDE)=${mx}`,
+        strong
+      };
+    }
+
+    // 偏爱：V=-2A-B+2C-D+2E-2
+    function model_py(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const V = -2*A - B + 2*C - D + 2*E - 2;
+      const r = mod(V, 5);
+      return { seat:r+2, extra:`V=${V}｜V mod 5=${r}` };
+    }
+
+    // ====== UI 渲染 ======
     const roomEl = document.getElementById("room");
     const goEl = document.getElementById("go");
+    const copyLastEl = document.getElementById("copyLast");
     const msgEl = document.getElementById("msg");
-    const seatWrapEl = document.getElementById("seatWrap");
-    const seatEl = document.getElementById("seat");
-    const subEl = document.getElementById("sub");
-    const historyBody = document.getElementById("historyBody");
-    const clearBtn = document.getElementById("clearHistory");
+    const gridEl = document.getElementById("grid");
+    const histBodyEl = document.getElementById("histBody");
 
-    function fmtTime(d){
-      const pad=(x)=>String(x).padStart(2,"0");
-      return `${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    const copyAllEl = document.getElementById("copyAll");
+    const exportCsvEl = document.getElementById("exportCsv");
+    const clearAllEl = document.getElementById("clearAll");
+
+    const LS_KEY = "nb_model_history_v1";
+    const MAX_KEEP = 200; // 最多保留 200 条
+
+    let lastTextToCopy = "";
+
+    function cardHTML({name, seatText, extra, tags=[]}){
+      const tagHTML = tags.map(x => `<span class="tag ${x.cls||""}">${escapeHtml(x.t)}</span>`).join("");
+      return `
+        <div class="card">
+          <div class="cardHead">
+            <div class="name"><span class="dot"></span>${escapeHtml(name)}</div>
+            <div class="seatBig">${escapeHtml(seatText)}</div>
+          </div>
+          <div class="meta">
+            <span class="tag">${escapeHtml(extra)}</span>
+            ${tagHTML}
+          </div>
+        </div>
+      `;
     }
+
+    function computeAll(room5){
+      const xj = model_xj(room5);
+      const mj = model_mj(room5);
+      const hA = model_hhh_A(room5);
+      const hB = model_hhh_B(room5);
+      const bj = model_bj(room5);
+      const py = model_py(room5);
+      return {xj, mj, hA, hB, bj, py};
+    }
+
+    function renderCards(room5, out){
+      const hTagsA = [
+        {t:"模型A：2/3主力参考", cls:"amber"},
+        ((out.hA.seat===2||out.hA.seat===3) ? {t:"✅落在2/3", cls:"green"} : {t:"非2/3（仍输出）", cls:""} )
+      ];
+      const hTagsB = [{t:"模型B：只出4/5对冲", cls:"amber"}];
+      const bjTags = [ out.bj.strong ? {t:"🔥 强信号（可加仓）", cls:"green"} : {t:"普通信号（正常仓）", cls:""} ];
+
+      gridEl.innerHTML = [
+        cardHTML({name:"蜡笔小新", seatText: `${out.xj.seat}号`, extra: out.xj.extra}),
+        cardHTML({name:"梦见", seatText: `${out.mj.seat}号`, extra: out.mj.extra}),
+        cardHTML({name:"呵呵呵（模型A）", seatText: `${out.hA.seat}号`, extra: out.hA.extra, tags: hTagsA}),
+        cardHTML({name:"呵呵呵（模型B）", seatText: `${out.hB.seat}号`, extra: out.hB.extra, tags: hTagsB}),
+        cardHTML({name:"八戒", seatText: `${out.bj.seat}号`, extra: out.bj.extra, tags: bjTags}),
+        cardHTML({name:"偏爱", seatText: `${out.py.seat}号`, extra: out.py.extra})
+      ].join("");
+      gridEl.style.display = "grid";
+    }
+
+    // ====== 历史记录存取 ======
     function loadHistory(){
       try{
-        const raw = localStorage.getItem(HISTORY_KEY);
+        const raw = localStorage.getItem(LS_KEY);
         const arr = raw ? JSON.parse(raw) : [];
         return Array.isArray(arr) ? arr : [];
-      }catch{ return []; }
+      }catch(e){
+        return [];
+      }
     }
+
     function saveHistory(arr){
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0, HISTORY_MAX)));
+      localStorage.setItem(LS_KEY, JSON.stringify(arr));
     }
-    function renderHistory(){
-      const hist = loadHistory();
-      historyBody.innerHTML = "";
-      hist.forEach(row=>{
-        const tr = document.createElement("tr");
-        const td = (html)=>{ const el=document.createElement("td"); el.innerHTML=html; return el; };
-        tr.appendChild(td(row.time));
-        tr.appendChild(td(`<span class="pill">${row.room}</span>`));
-        const isSkip = (row.result === "跳");
-        tr.appendChild(td(`<span class="pill ${isSkip ? "pillSkip":""}">${row.result}</span>`));
-        historyBody.appendChild(tr);
-      });
-    }
-    function appendHistory(room5, result){
-      const hist = loadHistory();
-      hist.unshift({ time: fmtTime(new Date()), room: room5, result });
-      saveHistory(hist);
+
+    function addHistory(item){
+      const arr = loadHistory();
+      arr.unshift(item);
+      if(arr.length > MAX_KEEP) arr.length = MAX_KEEP;
+      saveHistory(arr);
       renderHistory();
     }
 
+    function deleteHistory(id){
+      const arr = loadHistory().filter(x => x.id !== id);
+      saveHistory(arr);
+      renderHistory();
+    }
+
+    function clearHistory(){
+      saveHistory([]);
+      renderHistory();
+    }
+
+    function renderHistory(){
+      const arr = loadHistory();
+      if(arr.length === 0){
+        histBodyEl.innerHTML = `<tr><td colspan="9" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>`;
+        return;
+      }
+
+      histBodyEl.innerHTML = arr.map(row => `
+        <tr>
+          <td class="mono">${escapeHtml(fmtTime(row.ts))}</td>
+          <td class="mono">${escapeHtml(row.room)}</td>
+          <td class="mono">${escapeHtml(row.xj)}</td>
+          <td class="mono">${escapeHtml(row.mj)}</td>
+          <td class="mono">${escapeHtml(row.hA)}</td>
+          <td class="mono">${escapeHtml(row.hB)}</td>
+          <td class="mono">${escapeHtml(row.bj)}</td>
+          <td class="mono">${escapeHtml(row.py)}</td>
+          <td><span class="del" data-del="${escapeHtml(row.id)}">删</span></td>
+        </tr>
+      `).join("");
+
+      // 绑定删除
+      histBodyEl.querySelectorAll("[data-del]").forEach(el=>{
+        el.addEventListener("click", ()=>deleteHistory(el.getAttribute("data-del")));
+      });
+    }
+
+    // ====== 复制/导出 ======
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        msgEl.textContent = "✅ 已复制到剪贴板";
+      }catch(e){
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        msgEl.textContent = "✅ 已复制到剪贴板";
+      }
+      setTimeout(()=>{ msgEl.textContent=""; }, 900);
+    }
+
+    function buildCopyLine(room5, out){
+      // 一行汇总（方便你发我/记账）
+      // 例：12:01:02 51330 ｜ 小新4 梦见2 呵A5 呵B5 八戒6(强) 偏爱2
+      const t = fmtTime(Date.now());
+      const strong = out.bj.strong ? "强" : "普";
+      return `${t} ${room5} ｜ 小新${out.xj.seat} 梦见${out.mj.seat} 呵A${out.hA.seat} 呵B${out.hB.seat} 八戒${out.bj.seat}(${strong}) 偏爱${out.py.seat}`;
+    }
+
+    function exportCSV(){
+      const arr = loadHistory();
+      if(arr.length===0){
+        msgEl.textContent = "暂无记录可导出";
+        setTimeout(()=>{ msgEl.textContent=""; }, 900);
+        return;
+      }
+      const header = ["time","room","xj","mj","hhhA","hhhB","bajie","pianai"];
+      const rows = arr.map(r => [
+        new Date(r.ts).toISOString(),
+        r.room, r.xj, r.mj, r.hA, r.hB, r.bj, r.py
+      ]);
+      const csv = [header, ...rows]
+        .map(line => line.map(x => `"${String(x).replaceAll('"','""')}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "nb_model_history.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      msgEl.textContent = "✅ CSV 已导出";
+      setTimeout(()=>{ msgEl.textContent=""; }, 900);
+    }
+
+    // ====== 主流程 ======
     function run(){
       const s = roomEl.value.trim().replace(/\s+/g,"");
       if(!/^\d{5}$/.test(s)){
         msgEl.textContent = "请输入正确的5位数字（例如：51330）";
-        seatWrapEl.style.display = "none";
+        gridEl.style.display = "none";
+        gridEl.innerHTML = "";
         return;
       }
 
-      const out = calcBajie(s);
+      const out = computeAll(s);
+      renderCards(s, out);
 
+      // 本次复制文本
+      lastTextToCopy = buildCopyLine(s, out);
+
+      // 写入历史（用展示值，便于阅读）
+      addHistory({
+        id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+        ts: Date.now(),
+        room: s,
+        xj: `${out.xj.seat}｜${out.xj.extra}`,
+        mj: `${out.mj.seat}｜${out.mj.extra}`,
+        hA: `${out.hA.seat}｜${out.hA.extra}`,
+        hB: `${out.hB.seat}｜${out.hB.extra}`,
+        bj: `${out.bj.seat}｜${out.bj.extra}｜${out.bj.strong ? "强" : "普"}`,
+        py: `${out.py.seat}｜${out.py.extra}`
+      });
+
+      // 自动清空 + 继续输入
       msgEl.textContent = "";
-      seatWrapEl.style.display = "block";
-      seatEl.textContent = out.seatText;
-      subEl.textContent = out.detail;
-
-      appendHistory(s, out.seatText);
-
       setTimeout(()=>{ roomEl.value=""; roomEl.focus(); }, 250);
     }
 
     goEl.addEventListener("click", run);
     roomEl.addEventListener("keydown", e => { if(e.key==="Enter") run(); });
-    clearBtn.addEventListener("click", ()=>{
-      localStorage.removeItem(HISTORY_KEY);
-      renderHistory();
+
+    copyLastEl.addEventListener("click", ()=>{
+      if(!lastTextToCopy){
+        msgEl.textContent = "还没有本次结果可复制";
+        setTimeout(()=>{ msgEl.textContent=""; }, 900);
+        return;
+      }
+      copyText(lastTextToCopy);
     });
 
+    copyAllEl.addEventListener("click", ()=>{
+      const arr = loadHistory();
+      if(arr.length===0){
+        msgEl.textContent = "暂无记录可复制";
+        setTimeout(()=>{ msgEl.textContent=""; }, 900);
+        return;
+      }
+      // 只复制精简行，便于你贴给我
+      const lines = arr
+        .slice()
+        .reverse()
+        .map(r => {
+          const t = fmtTime(r.ts);
+          const strong = (r.bj.includes("｜强") ? "强" : "普");
+          // 解析座位（每个字段格式是：seat｜extra...）
+          const seatOnly = (s)=>String(s).split("｜")[0];
+          return `${t} ${r.room} ｜ 小新${seatOnly(r.xj)} 梦见${seatOnly(r.mj)} 呵A${seatOnly(r.hA)} 呵B${seatOnly(r.hB)} 八戒${seatOnly(r.bj)}(${strong}) 偏爱${seatOnly(r.py)}`;
+        });
+      copyText(lines.join("\n"));
+    });
+
+    exportCsvEl.addEventListener("click", exportCSV);
+
+    clearAllEl.addEventListener("click", ()=>{
+      if(confirm("确认清空所有战绩记录？（本机保存会被删除）")){
+        clearHistory();
+        msgEl.textContent = "✅ 已清空";
+        setTimeout(()=>{ msgEl.textContent=""; }, 900);
+      }
+    });
+
+    // 初始化
     renderHistory();
     roomEl.focus();
 
-    // 离线（可选）
+    // 注册离线
     if("serviceWorker" in navigator){
       window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js"));
     }
