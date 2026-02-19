@@ -1,4 +1,4 @@
-const CACHE_NAME = "nb-model-pack-v2"; // ← 改这个版本号很关键
+const CACHE_NAME = "xj-model-v2"; // ← 改这个版本号很关键
 const ASSETS = [
   "./",
   "./index.html",
