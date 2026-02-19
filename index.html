@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#b00000" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="模型合集">
+  <meta name="apple-mobile-web-app-title" content="八戒牛逼">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <title>模型合集</title>
+  <title>八戒牛逼模型</title>
 
   <style>
     :root{
@@ -28,7 +28,7 @@
       color:var(--text);
       padding:18px;
     }
-    .app{width:min(640px,100%);}
+    .app{width:min(680px,100%);}
     .title{
       font-size:22px;font-weight:900;letter-spacing:.5px;margin:0 0 12px;
       display:flex;align-items:center;gap:10px;
@@ -57,68 +57,51 @@
     .msg{margin-top:10px;font-size:13px;color:var(--muted);min-height:18px;}
     .seatWrap{
       margin-top:12px;padding:14px;border-radius:16px;
-      border:1px dashed rgba(255,45,45,.35);background:rgba(255,45,45,.06);
+      border:1px dashed rgba(255,45,45,.35);background:rgba(255,45,45,.06);text-align:center;
       display:none;
     }
-    .seatRow{display:flex; align-items:flex-end; gap:12px; justify-content:space-between; flex-wrap:wrap;}
-    .seat{font-size:54px;font-weight:1000;letter-spacing:1px;color:var(--red);text-shadow:0 0 18px rgba(255,45,45,.35);}
+    .seat{font-size:56px;font-weight:1000;letter-spacing:1px;color:var(--red);text-shadow:0 0 18px rgba(255,45,45,.35);}
     .sub{margin-top:6px;font-size:13px;color:var(--muted);white-space:pre-line;}
     .tiny{margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)}
     code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
 
+    /* 记录表 */
     .history{
-      margin-top:14px;
-      border-top:1px solid var(--line);
-      padding-top:12px;
+      margin-top:14px;border-top:1px solid var(--line);padding-top:14px;
     }
     .historyHead{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin-bottom:10px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;
     }
-    .historyTitle{font-weight:900;}
+    .historyTitle{font-size:14px;font-weight:900;color:rgba(255,255,255,.85);}
     .ghostBtn{
-      padding:8px 10px; font-size:12px; border-radius:12px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      cursor:pointer;
-      width:auto;
-      margin-top:0;
+      padding:8px 10px;font-size:12px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(0,0,0,.25);color:#fff;cursor:pointer;
     }
-    .cards{display:flex; flex-direction:column; gap:10px;}
-    .card{
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.22);
-      border-radius:14px;
-      padding:12px;
+    .ghostBtn:active{transform:translateY(1px);}
+    .tableWrap{
+      overflow:auto;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.18);
     }
-    .cardTop{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin-bottom:8px;
+    table{width:100%;border-collapse:collapse;min-width:520px;}
+    th, td{
+      padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);
+      font-size:13px;text-align:left;white-space:nowrap;
     }
-    .roomBadge{
-      font-weight:1000;
-      letter-spacing:.5px;
+    th{color:rgba(255,255,255,.75);font-weight:900;background:rgba(255,255,255,.03);}
+    tr:last-child td{border-bottom:none;}
+    .pill{
+      display:inline-block;padding:2px 8px;border-radius:999px;
+      border:1px solid rgba(255,45,45,.35);background:rgba(255,45,45,.10);
+      color:rgba(255,255,255,.9);font-weight:900;
     }
-    .time{
-      font-size:12px; color:rgba(255,255,255,.55);
+    .pillSkip{
+      border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);
     }
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr auto;
-      gap:6px 10px;
-      font-size:13px;
-      color:rgba(255,255,255,.78);
-    }
-    .name{color:rgba(255,255,255,.70)}
-    .val{font-weight:900; color:var(--text)}
-    .val.jump{color:rgba(255,255,255,.55); font-weight:800}
   </style>
 </head>
 
 <body>
   <div class="app">
-    <div class="title">模型合集</div>
+    <div class="title">八戒牛逼模型（含偏移）</div>
 
     <div class="panel">
       <input id="room" inputmode="numeric" placeholder="输入5位房号" maxlength="5" />
@@ -126,29 +109,38 @@
 
       <div class="msg" id="msg"></div>
 
-      <!-- 主显示：本次预测（八戒含偏移） -->
       <div class="seatWrap" id="seatWrap">
-        <div class="seatRow">
-          <div>
-            <div class="seat" id="seat">—</div>
-            <div class="tiny" id="hint">本次默认展示：八戒牛逼模型（含偏移）</div>
-          </div>
-        </div>
+        <div class="seat" id="seat">—</div>
         <div class="sub" id="sub">—</div>
       </div>
 
       <div class="tiny">
-        八戒（含偏移）规则：<code>A=E</code> 跳；主公式 <code>F=A+B+C+E</code>，<code>seat=(F mod 5)+2</code>；增强 <code>r=(S-X) mod 5</code>；仅 <code>r∈{0,1}</code> 才偏移，优先偏到 <code>r=4</code>；偏移失败→<b>跳</b>
+        规则摘要：
+        <code>A=E</code> 跳；
+        主公式 <code>F=A+B+C+E</code>，<code>seat0=(F mod 5)+2</code>；
+        <code>r=(S-X) mod 5</code>，仅 <code>r∈{0,1}</code> 偏移（优先 r=4，其次 r=3，失败=跳）；
+        毒点触发二次偏移（2看B=8、3看C=6、4看D=3、5看E=8/0；避不开=跳）。
       </div>
 
-      <!-- 预测记录 -->
       <div class="history">
         <div class="historyHead">
-          <div class="historyTitle">预测记录（自动保存）</div>
-          <button class="ghostBtn" id="clear">清空记录</button>
+          <div class="historyTitle">最近预测记录（自动保存）</div>
+          <button class="ghostBtn" id="clearHistory">清空记录</button>
         </div>
-        <div class="cards" id="cards"></div>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>房号</th>
+                <th>预测</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -156,31 +148,13 @@
     // 真取模：永远 0..m-1
     const mod = (n,m)=>((n % m) + m) % m;
 
-    function digits(room5){
-      const A=+room5[0], B=+room5[1], C=+room5[2], D=+room5[3], E=+room5[4];
-      return {A,B,C,D,E};
-    }
-
-    // ===== 模型：蜡笔小新牛逼 =====
-    function calcShin(room5){
-      const {A,B,C,D,E} = digits(room5);
-      const V = -4*A -3*B -2*C -3*D -E -5;
-      const r = mod(V, 5);
-      const seat = r + 2;
-      return {
-        ok:true,
-        seat, seatText: `${seat}号`,
-        detail: `V=${V} ｜ V mod 5=${r}`
-      };
-    }
-
-    // ===== 模型：八戒牛逼（含偏移 + A=E跳 + 偏移失败=跳） =====
+    // ===== 八戒牛逼模型（含偏移 + A=E跳 + 偏移失败=跳 + 毒点二次偏移） =====
     function calcBajie(room5){
-      const {A,B,C,D,E} = digits(room5);
+      const A=+room5[0], B=+room5[1], C=+room5[2], D=+room5[3], E=+room5[4];
 
-      // 新增硬规则：A=E 跳
+      // 规则0：A=E 跳
       if(A === E){
-        return { ok:true, seat:null, seatText:"跳", detail:`A=E（${A}=${E}）→ 跳` };
+        return { seatText:"跳", detail:`A=E（${A}=${E}）→ 默认跳过` };
       }
 
       // 主公式
@@ -190,142 +164,137 @@
       // 增强层
       const S = A + B + C + D + E;
 
+      // X按座位取：2->A,3->B,4->C,5->D,6->E
       const pickX = (seat)=>{
         if(seat===2) return A;
         if(seat===3) return B;
         if(seat===4) return C;
         if(seat===5) return D;
-        return E; // seat===6
+        return E; // 6
+      };
+      const rForSeat = (seat)=>mod(S - pickX(seat), 5);
+
+      // 毒点（BCDE→2345 口径）
+      const isToxic = (seat)=>{
+        if(seat===2) return (B===8);            // 2号看B
+        if(seat===3) return (C===6);            // 3号看C
+        if(seat===4) return (D===3);            // 4号看D
+        if(seat===5) return (E===8 || E===0);   // 5号看E
+        return false; // 6号暂不设
       };
 
-      const rForSeat = (seat)=>{
-        const X = pickX(seat);
-        return mod(S - X, 5);
+      const candidatesNear = (baseSeat)=>{
+        const cand=[];
+        const pushIf=(x)=>{ if(x>=2 && x<=6 && !cand.includes(x)) cand.push(x); };
+        pushIf(baseSeat+1); pushIf(baseSeat-1);
+        pushIf(baseSeat+2); pushIf(baseSeat-2);
+        return cand;
       };
 
+      // Step 1：r偏移（仅 r=0/1 才偏移；失败=跳）
       const r0 = rForSeat(seat0);
+      let seat1 = seat0;
+      let moved1 = false;
 
-      // 默认不偏移
-      let finalSeat = seat0;
-      let movedNote = "不偏移";
-      let rf = r0;
+      if(r0===0 || r0===1){
+        const cand = candidatesNear(seat0);
 
-      // 只在 r=0/1 才偏移
-      if(r0 === 0 || r0 === 1){
-        // 候选：邻位优先，再±2（2..6）
-        const cand = [];
-        const pushIf = (x)=>{ if(x>=2 && x<=6 && !cand.includes(x)) cand.push(x); };
-        pushIf(seat0+1);
-        pushIf(seat0-1);
-        pushIf(seat0+2);
-        pushIf(seat0-2);
-
-        // 先找 r=4
         let best = null;
-        for(const s of cand){
-          if(rForSeat(s) === 4){ best = s; break; }
+        for(const s of cand){ if(rForSeat(s)===4){ best=s; break; } }
+        if(best===null){
+          for(const s of cand){ if(rForSeat(s)===3){ best=s; break; } }
         }
-        // 找不到再找 r=3
-        if(best === null){
-          for(const s of cand){
-            if(rForSeat(s) === 3){ best = s; break; }
+        if(best===null){
+          return { seatText:"跳", detail:`seat0=${seat0} r0=${r0} → 偏移失败（无 r=4/3）` };
+        }
+        seat1 = best;
+        moved1 = (seat1 !== seat0);
+      }
+
+      // Step 2：毒点二次偏移（踩毒就偏；避不开=跳）
+      let seatF = seat1;
+      let moved2 = false;
+
+      if(isToxic(seatF)){
+        const cand2 = candidatesNear(seatF);
+
+        const pickBestNoToxic = (targetR)=>{
+          for(const s of cand2){
+            if(!isToxic(s) && rForSeat(s)===targetR) return s;
           }
+          return null;
+        };
+
+        let best2 = pickBestNoToxic(4);
+        if(best2===null) best2 = pickBestNoToxic(3);
+        if(best2===null) best2 = pickBestNoToxic(2);
+
+        if(best2===null){
+          return { seatText:"跳", detail:`命中毒点（seat=${seatF}）→ 二次偏移失败 → 跳` };
         }
-
-        if(best !== null){
-          finalSeat = best;
-          rf = rForSeat(finalSeat);
-          movedNote = (finalSeat === seat0) ? "不偏移" : `偏移：${seat0}→${finalSeat}`;
-        }else{
-          // 按你要求：偏移失败 → 直接跳
-          return {
-            ok:true,
-            seat:null,
-            seatText:"跳",
-            detail:`seat0=${seat0}, r0=${r0}\n偏移失败→跳`
-          };
-        }
+        seatF = best2;
+        moved2 = (seatF !== seat1);
       }
 
-      return {
-        ok:true,
-        seat: finalSeat,
-        seatText: `${finalSeat}号`,
-        detail: `seat0=${seat0}, r0=${r0}\n${movedNote} → 最终=${finalSeat}, r=${rf}`
-      };
+      const rf = rForSeat(seatF);
+
+      // 输出详情（多行，方便你核对）
+      const notes = [];
+      notes.push(`seat0=${seat0} r0=${r0}`);
+      if(moved1) notes.push(`r偏移：${seat0}→${seat1}（r=${rForSeat(seat1)}）`);
+      if(isToxic(seat1)) notes.push(`毒点触发：seat=${seat1}`);
+      if(moved2) notes.push(`毒偏移：${seat1}→${seatF}（r=${rf}）`);
+      if(!moved1 && !moved2) notes.push(`不偏移 → r=${rf}`);
+
+      return { seatText: `${seatF}号`, detail: notes.join("\n") };
     }
 
-    // ===== 你的“多账号/多模型”列表（以后加模型就在这里加） =====
-    const MODELS = [
-      { id:"bajie", name:"八戒牛逼（含偏移）", calc: calcBajie },
-      { id:"shin",  name:"蜡笔小新牛逼",     calc: calcShin  },
-      // 以后你还有其他账号模型，就继续往这里 append：
-      // { id:"xxx", name:"某某牛逼", calc: calcXxx },
-    ];
+    // ===== 记录（自动保存） =====
+    const HISTORY_KEY = "bajie_history_v1";
+    const HISTORY_MAX = 60;
 
-    // ===== 记录保存 =====
-    const STORAGE_KEY = "model_history_v1";
-    const MAX_KEEP = 30;
-
-    function nowStr(){
-      const d = new Date();
-      const pad = (n)=>String(n).padStart(2,"0");
-      return `${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    }
-
-    function loadHistory(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        const arr = raw ? JSON.parse(raw) : [];
-        return Array.isArray(arr) ? arr : [];
-      }catch{
-        return [];
-      }
-    }
-
-    function saveHistory(arr){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr.slice(0, MAX_KEEP)));
-    }
-
-    function renderHistory(){
-      const cardsEl = document.getElementById("cards");
-      const hist = loadHistory();
-      if(hist.length === 0){
-        cardsEl.innerHTML = `<div class="tiny">暂无记录。输入房号后会自动保存。</div>`;
-        return;
-      }
-
-      cardsEl.innerHTML = hist.map(item=>{
-        const rows = item.results.map(r=>{
-          const isJump = r.value === "跳";
-          return `
-            <div class="name">${r.name}</div>
-            <div class="val ${isJump ? "jump":""}">${r.value}</div>
-          `;
-        }).join("");
-
-        return `
-          <div class="card">
-            <div class="cardTop">
-              <div class="roomBadge">房号：${item.room}</div>
-              <div class="time">${item.time}</div>
-            </div>
-            <div class="grid">
-              ${rows}
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    // ===== UI & 运行 =====
     const roomEl = document.getElementById("room");
     const goEl = document.getElementById("go");
     const msgEl = document.getElementById("msg");
     const seatWrapEl = document.getElementById("seatWrap");
     const seatEl = document.getElementById("seat");
     const subEl = document.getElementById("sub");
-    const clearEl = document.getElementById("clear");
+    const historyBody = document.getElementById("historyBody");
+    const clearBtn = document.getElementById("clearHistory");
+
+    function fmtTime(d){
+      const pad=(x)=>String(x).padStart(2,"0");
+      return `${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+    function loadHistory(){
+      try{
+        const raw = localStorage.getItem(HISTORY_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      }catch{ return []; }
+    }
+    function saveHistory(arr){
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0, HISTORY_MAX)));
+    }
+    function renderHistory(){
+      const hist = loadHistory();
+      historyBody.innerHTML = "";
+      hist.forEach(row=>{
+        const tr = document.createElement("tr");
+        const td = (html)=>{ const el=document.createElement("td"); el.innerHTML=html; return el; };
+        tr.appendChild(td(row.time));
+        tr.appendChild(td(`<span class="pill">${row.room}</span>`));
+        const isSkip = (row.result === "跳");
+        tr.appendChild(td(`<span class="pill ${isSkip ? "pillSkip":""}">${row.result}</span>`));
+        historyBody.appendChild(tr);
+      });
+    }
+    function appendHistory(room5, result){
+      const hist = loadHistory();
+      hist.unshift({ time: fmtTime(new Date()), room: room5, result });
+      saveHistory(hist);
+      renderHistory();
+    }
 
     function run(){
       const s = roomEl.value.trim().replace(/\s+/g,"");
@@ -335,42 +304,29 @@
         return;
       }
 
-      // 一次性计算所有模型结果
-      const results = MODELS.map(m=>{
-        const out = m.calc(s);
-        return { id:m.id, name:m.name, value: out.seatText };
-      });
+      const out = calcBajie(s);
 
-      // 主展示：默认展示八戒（含偏移）
-      const main = calcBajie(s);
       msgEl.textContent = "";
       seatWrapEl.style.display = "block";
-      seatEl.textContent = main.seatText;
-      subEl.textContent = main.detail;
+      seatEl.textContent = out.seatText;
+      subEl.textContent = out.detail;
 
-      // 记录写入历史（最新在前）
-      const hist = loadHistory();
-      const newItem = { room:s, time: nowStr(), results };
-      const next = [newItem, ...hist].slice(0, MAX_KEEP);
-      saveHistory(next);
-      renderHistory();
+      appendHistory(s, out.seatText);
 
-      // 自动清空 + 继续输入
-      setTimeout(()=>{ roomEl.value=""; roomEl.focus(); }, 220);
+      setTimeout(()=>{ roomEl.value=""; roomEl.focus(); }, 250);
     }
 
     goEl.addEventListener("click", run);
     roomEl.addEventListener("keydown", e => { if(e.key==="Enter") run(); });
-    clearEl.addEventListener("click", ()=>{
-      localStorage.removeItem(STORAGE_KEY);
+    clearBtn.addEventListener("click", ()=>{
+      localStorage.removeItem(HISTORY_KEY);
       renderHistory();
-      roomEl.focus();
     });
 
     renderHistory();
     roomEl.focus();
 
-    // 注册离线（可选但推荐）
+    // 离线（可选）
     if("serviceWorker" in navigator){
       window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js"));
     }
