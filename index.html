@@ -217,21 +217,20 @@
                 <th>梦见</th>
                 <th>呵呵呵A</th>
                 <th>呵呵呵B</th>
-                <th>八戒（F）</th>
                 <th>偏爱</th>
-                <th>八戒别跑·结构</th>
+                <th>八戒（结构）</th>
                 <th style="width:70px;">操作</th>
               </tr>
             </thead>
             <tbody id="histBody">
-              <tr><td colspan="10" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>
+              <tr><td colspan="9" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
       <div class="tiny">
-        真取模：<code>((n%5)+5)%5</code>。新增：<code>八戒别跑·结构匹配位</code> —— 若两个位子同时命中，输出 No1/No2，且与对话一致（2&4同中：B=8优先4，否则优先2）。
+        真取模：<code>((n%5)+5)%5</code>。当前八戒只保留：<code>结构匹配位</code> —— 若两个位子命中，输出 No1/No2（2&4同中：B=8优先4，否则优先2）。
       </div>
     </div>
   </div>
@@ -302,21 +301,6 @@
       return { seat, extra:`rep=${rep}｜par=${par}｜S=${S}｜S%2=${S%2}` };
     }
 
-    // 八戒（F模型）：F=A+B+C+E；seat=(F mod5)+2；强信号 max(BCDE)>=8
-    function model_bj(room5){
-      const {A,B,C,D,E} = parseABCDE(room5);
-      const F = A + B + C + E;
-      const r = mod(F, 5);
-      const seat = r + 2;
-      const mx = Math.max(B,C,D,E);
-      const strong = mx >= 8;
-      return {
-        seat,
-        extra:`F=${F}｜F mod 5=${r}｜max(BCDE)=${mx}`,
-        strong
-      };
-    }
-
     // 偏爱：V=-2A-B+2C-D+2E-2
     function model_py(room5){
       const {A,B,C,D,E} = parseABCDE(room5);
@@ -325,17 +309,17 @@
       return { seat:r+2, extra:`V=${V}｜V mod 5=${r}` };
     }
 
-    // ====== 八戒别跑·结构匹配位（最终版）=====
+    // ====== 八戒·结构匹配位（最终版）=====
     // 映射：23456 -> BCDEA
     // 白名单：
     // 2(B): {2,4,8}
     // 3(C): {2,7,8}
     // 4(D): {2,4,8}
-    // 5(E): {3,9}   （已踢掉E=1）
+    // 5(E): {3,9}
     // 6(A): {3,5,6}
     // 分流：若 A<=E，则只允许 2号位（且仍需B白名单）；否则按命中白名单推荐
     // 排序（确保与对话一致）：若 2&4 同时命中：B=8 -> 4优先，否则 2优先；其余顺序：4,2,5,3,6
-    function model_bjb_struct(room5){
+    function model_bj_struct(room5){
       const {A,B,C,D,E} = parseABCDE(room5);
 
       const WL = {
@@ -347,27 +331,23 @@
       };
 
       const hits = [];
-      const reasons = [];
-
       const aLeE = (A <= E);
 
       if(aLeE){
-        // 分流：只允许2号位
         if(WL[2].has(B)){
           hits.push(2);
-          reasons.push(`分流(A≤E)：只打2号｜B=${B}✅`);
         }else{
           return {
             action: "skip",
             recs: [],
             no1: null,
             no2: null,
+            seatBig: "跳",
             extra: `A=${A} B=${B} C=${C} D=${D} E=${E}｜分流(A≤E)只允许2号，但B=${B}不在{2,4,8}`,
             tags: [{t:"跳（分流不满足）", cls:"red"}]
           };
         }
       }else{
-        // 常规：命中白名单的位子都可推荐
         if(WL[2].has(B)) { hits.push(2); }
         if(WL[3].has(C)) { hits.push(3); }
         if(WL[4].has(D)) { hits.push(4); }
@@ -380,34 +360,26 @@
             recs: [],
             no1: null,
             no2: null,
+            seatBig: "跳",
             extra: `A=${A} B=${B} C=${C} D=${D} E=${E}｜无位子命中白名单`,
             tags: [{t:"跳（无命中）", cls:"red"}]
           };
         }
       }
 
-      // 排序：基础顺序 4,2,5,3,6
+      // 基础顺序：4,2,5,3,6
       const baseOrder = [4,2,5,3,6];
+      let ordered = hits.slice().sort((x,y)=> baseOrder.indexOf(x) - baseOrder.indexOf(y));
 
       // 特殊：2&4同中时，B=8 -> 4优先，否则2优先
-      let ordered = hits.slice();
-
       const has2 = ordered.includes(2);
       const has4 = ordered.includes(4);
-
-      // 先按baseOrder排序
-      ordered.sort((x,y)=> baseOrder.indexOf(x) - baseOrder.indexOf(y));
-
-      // 再处理2&4冲突
       if(has2 && has4){
+        ordered = ordered.filter(x=>x!==2 && x!==4);
         if(B === 8){
-          // 4 在前
-          ordered = ordered.filter(x=>x!==2 && x!==4);
           ordered.unshift(2);
           ordered.unshift(4);
         }else{
-          // 2 在前
-          ordered = ordered.filter(x=>x!==2 && x!==4);
           ordered.unshift(4);
           ordered.unshift(2);
         }
@@ -417,19 +389,16 @@
       const no1 = recs[0] ?? null;
       const no2 = recs[1] ?? null;
 
-      const recText =
-        (no1 && no2) ? `推荐No1:${no1}号｜推荐No2:${no2}号` :
-        (no1) ? `推荐No1:${no1}号` :
-        `跳`;
-
       const seatBig =
         (no1 && no2) ? `No1 ${no1}｜No2 ${no2}` :
-        (no1) ? `${no1}号` :
-        `跳`;
+        (no1) ? `${no1}号` : "跳";
 
-      const hitText = `命中位=[${hits.join(",")}]`;
+      const recText =
+        (no1 && no2) ? `推荐No1:${no1}号｜推荐No2:${no2}号` :
+        (no1) ? `推荐No1:${no1}号` : "跳";
+
       const flowText = aLeE ? "分流(A≤E)启用" : "常规(不分流)";
-      const extra = `A=${A} B=${B} C=${C} D=${D} E=${E}｜${flowText}｜${hitText}｜${recText}`;
+      const extra = `A=${A} B=${B} C=${C} D=${D} E=${E}｜${flowText}｜命中位=[${hits.join(",")}]｜${recText}`;
 
       const tags = [];
       tags.push({t: flowText, cls:"amber"});
@@ -437,10 +406,7 @@
 
       return {
         action: no1 ? "play" : "skip",
-        recs,
-        no1,
-        no2,
-        seatText: recText,
+        recs, no1, no2,
         seatBig,
         extra,
         tags
@@ -459,8 +425,8 @@
     const exportCsvEl = document.getElementById("exportCsv");
     const clearAllEl = document.getElementById("clearAll");
 
-    const LS_KEY = "nb_model_history_v2"; // ← 升级版本，避免旧表结构冲突
-    const MAX_KEEP = 200; // 最多保留 200 条
+    const LS_KEY = "nb_model_history_struct_only_v1"; // 新key，避免旧记录列数不一致
+    const MAX_KEEP = 200;
 
     let lastTextToCopy = "";
 
@@ -485,10 +451,9 @@
       const mj = model_mj(room5);
       const hA = model_hhh_A(room5);
       const hB = model_hhh_B(room5);
-      const bj = model_bj(room5);
       const py = model_py(room5);
-      const bjs = model_bjb_struct(room5);
-      return {xj, mj, hA, hB, bj, py, bjs};
+      const bj = model_bj_struct(room5); // ← 只保留这个八戒
+      return {xj, mj, hA, hB, py, bj};
     }
 
     function renderCards(room5, out){
@@ -497,18 +462,14 @@
         ((out.hA.seat===2||out.hA.seat===3) ? {t:"✅落在2/3", cls:"green"} : {t:"非2/3（仍输出）", cls:""} )
       ];
       const hTagsB = [{t:"模型B：只出4/5对冲", cls:"amber"}];
-      const bjTags = [ out.bj.strong ? {t:"🔥 强信号（可加仓）", cls:"green"} : {t:"普通信号（正常仓）", cls:""} ];
-
-      const bjsTags = out.bjs.tags || [];
 
       gridEl.innerHTML = [
         cardHTML({name:"蜡笔小新", seatText: `${out.xj.seat}号`, extra: out.xj.extra}),
         cardHTML({name:"梦见", seatText: `${out.mj.seat}号`, extra: out.mj.extra}),
         cardHTML({name:"呵呵呵（模型A）", seatText: `${out.hA.seat}号`, extra: out.hA.extra, tags: hTagsA}),
         cardHTML({name:"呵呵呵（模型B）", seatText: `${out.hB.seat}号`, extra: out.hB.extra, tags: hTagsB}),
-        cardHTML({name:"八戒（F）", seatText: `${out.bj.seat}号`, extra: out.bj.extra, tags: bjTags}),
         cardHTML({name:"偏爱", seatText: `${out.py.seat}号`, extra: out.py.extra}),
-        cardHTML({name:"八戒别跑·结构匹配位", seatText: out.bjs.seatBig || "跳", extra: out.bjs.extra, tags: bjsTags})
+        cardHTML({name:"八戒（结构匹配位）", seatText: out.bj.seatBig || "跳", extra: out.bj.extra, tags: out.bj.tags || []})
       ].join("");
       gridEl.style.display = "grid";
     }
@@ -550,7 +511,7 @@
     function renderHistory(){
       const arr = loadHistory();
       if(arr.length === 0){
-        histBodyEl.innerHTML = `<tr><td colspan="10" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>`;
+        histBodyEl.innerHTML = `<tr><td colspan="9" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>`;
         return;
       }
 
@@ -562,14 +523,12 @@
           <td class="mono">${escapeHtml(row.mj)}</td>
           <td class="mono">${escapeHtml(row.hA)}</td>
           <td class="mono">${escapeHtml(row.hB)}</td>
-          <td class="mono">${escapeHtml(row.bj)}</td>
           <td class="mono">${escapeHtml(row.py)}</td>
-          <td class="mono">${escapeHtml(row.bjs)}</td>
+          <td class="mono">${escapeHtml(row.bj)}</td>
           <td><span class="del" data-del="${escapeHtml(row.id)}">删</span></td>
         </tr>
       `).join("");
 
-      // 绑定删除
       histBodyEl.querySelectorAll("[data-del]").forEach(el=>{
         el.addEventListener("click", ()=>deleteHistory(el.getAttribute("data-del")));
       });
@@ -594,11 +553,10 @@
 
     function buildCopyLine(room5, out){
       const t = fmtTime(Date.now());
-      const strong = out.bj.strong ? "强" : "普";
-      const bjs = out.bjs.action === "play"
-        ? (out.bjs.no2 ? `No1:${out.bjs.no1} No2:${out.bjs.no2}` : `No1:${out.bjs.no1}`)
+      const bjShort = (out.bj.action === "play")
+        ? (out.bj.no2 ? `推荐No1:${out.bj.no1} 推荐No2:${out.bj.no2}` : `推荐No1:${out.bj.no1}`)
         : "跳";
-      return `${t} ${room5} ｜ 小新${out.xj.seat} 梦见${out.mj.seat} 呵A${out.hA.seat} 呵B${out.hB.seat} 八戒${out.bj.seat}(${strong}) 偏爱${out.py.seat} 结构(${bjs})`;
+      return `${t} ${room5} ｜ 小新${out.xj.seat} 梦见${out.mj.seat} 呵A${out.hA.seat} 呵B${out.hB.seat} 偏爱${out.py.seat} 八戒(${bjShort})`;
     }
 
     function exportCSV(){
@@ -608,10 +566,10 @@
         setTimeout(()=>{ msgEl.textContent=""; }, 900);
         return;
       }
-      const header = ["time","room","xj","mj","hhhA","hhhB","bajieF","pianai","bajieStruct"];
+      const header = ["time","room","xj","mj","hhhA","hhhB","pianai","bajie_struct"];
       const rows = arr.map(r => [
         new Date(r.ts).toISOString(),
-        r.room, r.xj, r.mj, r.hA, r.hB, r.bj, r.py, r.bjs
+        r.room, r.xj, r.mj, r.hA, r.hB, r.py, r.bj
       ]);
       const csv = [header, ...rows]
         .map(line => line.map(x => `"${String(x).replaceAll('"','""')}"`).join(","))
@@ -645,10 +603,9 @@
 
       lastTextToCopy = buildCopyLine(s, out);
 
-      // 写入历史（用展示值，便于阅读）
-      const bjsShort = (out.bjs.action === "play")
-        ? (out.bjs.no2 ? `推荐No1:${out.bjs.no1}号｜推荐No2:${out.bjs.no2}号` : `推荐No1:${out.bjs.no1}号`)
-        : `跳｜${out.bjs.extra}`;
+      const bjShort = (out.bj.action === "play")
+        ? (out.bj.no2 ? `推荐No1:${out.bj.no1}号｜推荐No2:${out.bj.no2}号` : `推荐No1:${out.bj.no1}号`)
+        : `跳｜${out.bj.extra}`;
 
       addHistory({
         id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
@@ -658,9 +615,8 @@
         mj: `${out.mj.seat}｜${out.mj.extra}`,
         hA: `${out.hA.seat}｜${out.hA.extra}`,
         hB: `${out.hB.seat}｜${out.hB.extra}`,
-        bj: `${out.bj.seat}｜${out.bj.extra}｜${out.bj.strong ? "强" : "普"}`,
         py: `${out.py.seat}｜${out.py.extra}`,
-        bjs: bjsShort
+        bj: bjShort
       });
 
       msgEl.textContent = "";
@@ -691,9 +647,8 @@
         .reverse()
         .map(r => {
           const t = fmtTime(r.ts);
-          const strong = (r.bj.includes("｜强") ? "强" : "普");
           const seatOnly = (s)=>String(s).split("｜")[0];
-          return `${t} ${r.room} ｜ 小新${seatOnly(r.xj)} 梦见${seatOnly(r.mj)} 呵A${seatOnly(r.hA)} 呵B${seatOnly(r.hB)} 八戒${seatOnly(r.bj)}(${strong}) 偏爱${seatOnly(r.py)} 结构(${r.bjs.split("｜")[0]})`;
+          return `${t} ${r.room} ｜ 小新${seatOnly(r.xj)} 梦见${seatOnly(r.mj)} 呵A${seatOnly(r.hA)} 呵B${seatOnly(r.hB)} 偏爱${seatOnly(r.py)} 八戒(${r.bj.split("｜")[0]})`;
         });
       copyText(lines.join("\n"));
     });
