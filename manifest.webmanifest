@@ -1,7 +1,7 @@
 {
   "name": "牛逼模型合集（多账号版）",
   "short_name": "牛逼模型",
-  "description": "蜡笔小新 / 梦见 / 呵呵呵 / 八戒 / 偏爱 / 八戒别跑·结构匹配位 同步计算工具",
+  "description": "蜡笔小新 / 梦见 / 呵呵呵 / 偏爱 + 八戒（结构匹配位）同步计算工具",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
