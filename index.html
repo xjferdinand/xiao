@@ -301,12 +301,34 @@
       return { seat, extra:`rep=${rep}｜par=${par}｜S=${S}｜S%2=${S%2}` };
     }
 
-    // 偏爱：V=-2A-B+2C-D+2E-2
+    // ====== 偏爱（稳健口诀模型｜只替换这一段）=====
+    // 口诀：
+    // 先看A=7坐6；
+    // 再看E∈{9,0,6,1}坐5；
+    // 再看C∈{6,7}坐3；
+    // 再看B=3坐2；
+    // 最后D=8才考虑4；
+    // 都不命中就不打。
     function model_py(room5){
       const {A,B,C,D,E} = parseABCDE(room5);
-      const V = -2*A - B + 2*C - D + 2*E - 2;
-      const r = mod(V, 5);
-      return { seat:r+2, extra:`V=${V}｜V mod 5=${r}` };
+
+      if (A === 7) {
+        return { seat: 6, action: "play", extra: `命中：A=7 → 坐6｜A=${A} B=${B} C=${C} D=${D} E=${E}` };
+      }
+      if (new Set([9,0,6,1]).has(E)) {
+        return { seat: 5, action: "play", extra: `命中：E∈{9,0,6,1} → 坐5｜A=${A} B=${B} C=${C} D=${D} E=${E}` };
+      }
+      if (new Set([6,7]).has(C)) {
+        return { seat: 3, action: "play", extra: `命中：C∈{6,7} → 坐3｜A=${A} B=${B} C=${C} D=${D} E=${E}` };
+      }
+      if (B === 3) {
+        return { seat: 2, action: "play", extra: `命中：B=3 → 坐2｜A=${A} B=${B} C=${C} D=${D} E=${E}` };
+      }
+      if (D === 8) {
+        return { seat: 4, action: "play", extra: `命中：D=8 → 坐4｜A=${A} B=${B} C=${C} D=${D} E=${E}` };
+      }
+
+      return { seat: null, action: "skip", extra: `不命中 → 不打｜A=${A} B=${B} C=${C} D=${D} E=${E}` };
     }
 
     // ====== 八戒·结构匹配位（最终版）=====
@@ -451,8 +473,8 @@
       const mj = model_mj(room5);
       const hA = model_hhh_A(room5);
       const hB = model_hhh_B(room5);
-      const py = model_py(room5);
-      const bj = model_bj_struct(room5); // ← 只保留这个八戒
+      const py = model_py(room5);      // ← 偏爱已替换为口诀模型
+      const bj = model_bj_struct(room5);
       return {xj, mj, hA, hB, py, bj};
     }
 
@@ -468,7 +490,15 @@
         cardHTML({name:"梦见", seatText: `${out.mj.seat}号`, extra: out.mj.extra}),
         cardHTML({name:"呵呵呵（模型A）", seatText: `${out.hA.seat}号`, extra: out.hA.extra, tags: hTagsA}),
         cardHTML({name:"呵呵呵（模型B）", seatText: `${out.hB.seat}号`, extra: out.hB.extra, tags: hTagsB}),
-        cardHTML({name:"偏爱", seatText: `${out.py.seat}号`, extra: out.py.extra}),
+
+        // 偏爱：支持“不打”
+        cardHTML({
+          name:"偏爱",
+          seatText: (out.py.seat ? `${out.py.seat}号` : "不打"),
+          extra: out.py.extra,
+          tags: out.py.seat ? [{t:"✅可打", cls:"green"}] : [{t:"❌不打", cls:"red"}]
+        }),
+
         cardHTML({name:"八戒（结构匹配位）", seatText: out.bj.seatBig || "跳", extra: out.bj.extra, tags: out.bj.tags || []})
       ].join("");
       gridEl.style.display = "grid";
@@ -551,12 +581,22 @@
       setTimeout(()=>{ msgEl.textContent=""; }, 900);
     }
 
+    // copyAll里会用到：取“座位前缀”
+    function seatOnly(s){
+      const left = String(s).split("｜")[0];
+      return left;
+    }
+
     function buildCopyLine(room5, out){
       const t = fmtTime(Date.now());
       const bjShort = (out.bj.action === "play")
         ? (out.bj.no2 ? `推荐No1:${out.bj.no1} 推荐No2:${out.bj.no2}` : `推荐No1:${out.bj.no1}`)
         : "跳";
-      return `${t} ${room5} ｜ 小新${out.xj.seat} 梦见${out.mj.seat} 呵A${out.hA.seat} 呵B${out.hB.seat} 偏爱${out.py.seat} 八戒(${bjShort})`;
+
+      // 偏爱：可能“不打”
+      const pySeatText = out.py.seat ? `${out.py.seat}` : "不打";
+
+      return `${t} ${room5} ｜ 小新${out.xj.seat} 梦见${out.mj.seat} 呵A${out.hA.seat} 呵B${out.hB.seat} 偏爱${pySeatText} 八戒(${bjShort})`;
     }
 
     function exportCSV(){
@@ -607,6 +647,9 @@
         ? (out.bj.no2 ? `推荐No1:${out.bj.no1}号｜推荐No2:${out.bj.no2}号` : `推荐No1:${out.bj.no1}号`)
         : `跳｜${out.bj.extra}`;
 
+      // 偏爱：seat可能是null
+      const pySeatPrefix = (out.py.seat ?? "不打");
+
       addHistory({
         id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
         ts: Date.now(),
@@ -615,7 +658,7 @@
         mj: `${out.mj.seat}｜${out.mj.extra}`,
         hA: `${out.hA.seat}｜${out.hA.extra}`,
         hB: `${out.hB.seat}｜${out.hB.extra}`,
-        py: `${out.py.seat}｜${out.py.extra}`,
+        py: `${pySeatPrefix}｜${out.py.extra}`,
         bj: bjShort
       });
 
@@ -642,13 +685,17 @@
         setTimeout(()=>{ msgEl.textContent=""; }, 900);
         return;
       }
+
       const lines = arr
         .slice()
         .reverse()
         .map(r => {
           const t = fmtTime(r.ts);
-          const seatOnly = (s)=>String(s).split("｜")[0];
-          return `${t} ${r.room} ｜ 小新${seatOnly(r.xj)} 梦见${seatOnly(r.mj)} 呵A${seatOnly(r.hA)} 呵B${seatOnly(r.hB)} 偏爱${seatOnly(r.py)} 八戒(${r.bj.split("｜")[0]})`;
+
+          // 偏爱：可能“不打”
+          const pySeat = seatOnly(r.py);
+
+          return `${t} ${r.room} ｜ 小新${seatOnly(r.xj)} 梦见${seatOnly(r.mj)} 呵A${seatOnly(r.hA)} 呵B${seatOnly(r.hB)} 偏爱${pySeat} 八戒(${r.bj.split("｜")[0]})`;
         });
       copyText(lines.join("\n"));
     });
