@@ -1,3 +1,4 @@
+<!-- index.html（完整版：已加入「八戒最终推荐（只输出一个）」并置顶；八戒1T/八戒2~6 分开保留；其它模型保持不变） -->
 <!doctype html>
 <html lang="zh-CN">
 <head>
@@ -213,24 +214,30 @@
               <tr>
                 <th style="width:110px;">时间</th>
                 <th style="width:86px;">房号</th>
+
+                <!-- 八戒三列（最终置顶）：最终 / 1T / 2~6 -->
+                <th>八戒最终</th>
+                <th>八戒1号T</th>
+                <th>八戒T双甜点(2~6)</th>
+
                 <th>蜡笔小新</th>
                 <th>梦见</th>
                 <th>呵呵呵A</th>
                 <th>呵呵呵B</th>
                 <th>偏爱</th>
-                <th>八戒（结构）</th>
+
                 <th style="width:70px;">操作</th>
               </tr>
             </thead>
             <tbody id="histBody">
-              <tr><td colspan="9" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>
+              <tr><td colspan="12" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
       <div class="tiny">
-        真取模：<code>((n%5)+5)%5</code>。当前八戒只保留：<code>结构匹配位</code> —— 若两个位子命中，输出 No1/No2（2&4同中：B=8优先4，否则优先2）。
+        ✅ 八戒口径统一：页面与我对话都以 <code>八戒最终推荐（只输出一个）</code> 为准。规则：<code>2~6双甜点优先</code> → <code>1T兜底</code> → 否则跳。
       </div>
     </div>
   </div>
@@ -301,14 +308,7 @@
       return { seat, extra:`rep=${rep}｜par=${par}｜S=${S}｜S%2=${S%2}` };
     }
 
-    // ====== 偏爱（稳健口诀模型｜只替换这一段）=====
-    // 口诀：
-    // 先看A=7坐6；
-    // 再看E∈{9,0,6,1}坐5；
-    // 再看C∈{6,7}坐3；
-    // 再看B=3坐2；
-    // 最后D=8才考虑4；
-    // 都不命中就不打。
+    // ====== 偏爱（稳健口诀模型｜保持不变）=====
     function model_py(room5){
       const {A,B,C,D,E} = parseABCDE(room5);
 
@@ -331,107 +331,118 @@
       return { seat: null, action: "skip", extra: `不命中 → 不打｜A=${A} B=${B} C=${C} D=${D} E=${E}` };
     }
 
-    // ====== 八戒·结构匹配位（最终版）=====
-    // 映射：23456 -> BCDEA
-    // 白名单：
-    // 2(B): {2,4,8}
-    // 3(C): {2,7,8}
-    // 4(D): {2,4,8}
-    // 5(E): {3,9}
-    // 6(A): {3,5,6}
-    // 分流：若 A<=E，则只允许 2号位（且仍需B白名单）；否则按命中白名单推荐
-    // 排序（确保与对话一致）：若 2&4 同时命中：B=8 -> 4优先，否则 2优先；其余顺序：4,2,5,3,6
-    function model_bj_struct(room5){
-      const {A,B,C,D,E} = parseABCDE(room5);
+    // ============================================================
+    // ✅ 八戒三套（最终统一口径）
+    // 1) 八戒1号位T终极模型：
+    //    T1 = B+C+D+E，甜点：15~18 -> 推荐1号；否则跳
+    // 2) 八戒T双甜点结构版(2~6)：
+    //    S=A+B+C+D+E
+    //    T2=S-B -> {14,16}
+    //    T3=S-C -> {18,19}
+    //    T4=S-D -> {10,11,12}
+    //    T5=S-E -> {22,23}
+    //    T6=S-A -> {16,17}
+    //    多命中优先级：6 > 3 > 5 > 2 > 4
+    //    只输出一个位子（No1）
+    // 3) 八戒最终推荐（只输出一个）：
+    //    2~6优先；否则1T；否则跳
+    // ============================================================
 
-      const WL = {
-        2: new Set([2,4,8]),    // B
-        3: new Set([2,7,8]),    // C
-        4: new Set([2,4,8]),    // D
-        5: new Set([3,9]),      // E
-        6: new Set([3,5,6])     // A
+    function model_bj_1T(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const T1 = B + C + D + E;
+      const ok = (T1 >= 15 && T1 <= 18);
+      return {
+        action: ok ? "play" : "skip",
+        seat: ok ? 1 : null,
+        seatBig: ok ? "1号" : "跳",
+        extra: `A=${A} B=${B} C=${C} D=${D} E=${E}｜T1=BCDE=${T1}｜甜点(15~18)=${ok ? "是" : "否"}`,
+        tags: ok
+          ? [{t:"优质T", cls:"green"}]
+          : [{t:"跳（不在甜点）", cls:"red"}]
+      };
+    }
+
+    function model_bj_Tsweet_26(room5){
+      const {A,B,C,D,E} = parseABCDE(room5);
+      const S = A + B + C + D + E;
+
+      const T2 = S - B;
+      const T3 = S - C;
+      const T4 = S - D;
+      const T5 = S - E;
+      const T6 = S - A;
+
+      const sweet = {
+        2: new Set([14,16]),
+        3: new Set([18,19]),
+        4: new Set([10,11,12]),
+        5: new Set([22,23]),
+        6: new Set([16,17])
       };
 
       const hits = [];
-      const aLeE = (A <= E);
+      if(sweet[2].has(T2)) hits.push(2);
+      if(sweet[3].has(T3)) hits.push(3);
+      if(sweet[4].has(T4)) hits.push(4);
+      if(sweet[5].has(T5)) hits.push(5);
+      if(sweet[6].has(T6)) hits.push(6);
 
-      if(aLeE){
-        if(WL[2].has(B)){
-          hits.push(2);
-        }else{
-          return {
-            action: "skip",
-            recs: [],
-            no1: null,
-            no2: null,
-            seatBig: "跳",
-            extra: `A=${A} B=${B} C=${C} D=${D} E=${E}｜分流(A≤E)只允许2号，但B=${B}不在{2,4,8}`,
-            tags: [{t:"跳（分流不满足）", cls:"red"}]
-          };
-        }
-      }else{
-        if(WL[2].has(B)) { hits.push(2); }
-        if(WL[3].has(C)) { hits.push(3); }
-        if(WL[4].has(D)) { hits.push(4); }
-        if(WL[5].has(E)) { hits.push(5); }
-        if(WL[6].has(A)) { hits.push(6); }
-
-        if(hits.length === 0){
-          return {
-            action: "skip",
-            recs: [],
-            no1: null,
-            no2: null,
-            seatBig: "跳",
-            extra: `A=${A} B=${B} C=${C} D=${D} E=${E}｜无位子命中白名单`,
-            tags: [{t:"跳（无命中）", cls:"red"}]
-          };
-        }
+      if(hits.length === 0){
+        return {
+          action:"skip",
+          seat:null,
+          seatBig:"跳",
+          extra:`A=${A} B=${B} C=${C} D=${D} E=${E}｜S=${S}｜T2=${T2} T3=${T3} T4=${T4} T5=${T5} T6=${T6}｜未命中双甜点`,
+          tags:[{t:"跳（未命中）", cls:"red"}]
+        };
       }
 
-      // 基础顺序：4,2,5,3,6
-      const baseOrder = [4,2,5,3,6];
-      let ordered = hits.slice().sort((x,y)=> baseOrder.indexOf(x) - baseOrder.indexOf(y));
+      // 优先级：6 > 3 > 5 > 2 > 4（只输出一个位子）
+      const priority = [6,3,5,2,4];
+      const seat = hits.slice().sort((x,y)=>priority.indexOf(x)-priority.indexOf(y))[0];
 
-      // 特殊：2&4同中时，B=8 -> 4优先，否则2优先
-      const has2 = ordered.includes(2);
-      const has4 = ordered.includes(4);
-      if(has2 && has4){
-        ordered = ordered.filter(x=>x!==2 && x!==4);
-        if(B === 8){
-          ordered.unshift(2);
-          ordered.unshift(4);
-        }else{
-          ordered.unshift(4);
-          ordered.unshift(2);
-        }
-      }
-
-      const recs = ordered.slice(0,2);
-      const no1 = recs[0] ?? null;
-      const no2 = recs[1] ?? null;
-
-      const seatBig =
-        (no1 && no2) ? `No1 ${no1}｜No2 ${no2}` :
-        (no1) ? `${no1}号` : "跳";
-
-      const recText =
-        (no1 && no2) ? `推荐No1:${no1}号｜推荐No2:${no2}号` :
-        (no1) ? `推荐No1:${no1}号` : "跳";
-
-      const flowText = aLeE ? "分流(A≤E)启用" : "常规(不分流)";
-      const extra = `A=${A} B=${B} C=${C} D=${D} E=${E}｜${flowText}｜命中位=[${hits.join(",")}]｜${recText}`;
-
-      const tags = [];
-      tags.push({t: flowText, cls:"amber"});
-      tags.push({t: (no1 ? "✅可打" : "❌跳"), cls: (no1 ? "green" : "red")});
+      const tMap = {2:T2,3:T3,4:T4,5:T5,6:T6};
+      const tVal = tMap[seat];
 
       return {
-        action: no1 ? "play" : "skip",
-        recs, no1, no2,
-        seatBig,
-        extra,
-        tags
+        action:"play",
+        seat,
+        seatBig:`${seat}号`,
+        extra:`A=${A} B=${B} C=${C} D=${D} E=${E}｜S=${S}｜命中位=[${hits.join(",")}]｜No1=${seat}（T${seat}=${tVal}）`,
+        tags:[{t:"优质T（双甜点）", cls:"green"}]
+      };
+    }
+
+    function model_bj_final(room5){
+      const bjT = model_bj_Tsweet_26(room5);
+      if (bjT.action === "play") {
+        return {
+          action:"play",
+          seat: bjT.seat,
+          seatBig: `${bjT.seat}号`,
+          extra: `【最终=2~6优先】${bjT.extra}`,
+          tags:[{t:"最终推荐", cls:"green"}]
+        };
+      }
+
+      const bj1 = model_bj_1T(room5);
+      if (bj1.action === "play") {
+        return {
+          action:"play",
+          seat: 1,
+          seatBig: `1号`,
+          extra: `【最终=1T兜底】${bj1.extra}`,
+          tags:[{t:"最终推荐", cls:"green"}]
+        };
+      }
+
+      return {
+        action:"skip",
+        seat:null,
+        seatBig:"跳",
+        extra:`【最终】2~6未中 + 1T未中 → 跳｜A=${parseABCDE(room5).A} B=${parseABCDE(room5).B} C=${parseABCDE(room5).C} D=${parseABCDE(room5).D} E=${parseABCDE(room5).E}`,
+        tags:[{t:"最终推荐", cls:"red"}]
       };
     }
 
@@ -447,7 +458,8 @@
     const exportCsvEl = document.getElementById("exportCsv");
     const clearAllEl = document.getElementById("clearAll");
 
-    const LS_KEY = "nb_model_history_struct_only_v1"; // 新key，避免旧记录列数不一致
+    // 新key：表格列改了（避免旧记录结构不一致）
+    const LS_KEY = "nb_model_history_bajie_final_v1";
     const MAX_KEEP = 200;
 
     let lastTextToCopy = "";
@@ -469,13 +481,17 @@
     }
 
     function computeAll(room5){
+      const bjF = model_bj_final(room5);
+      const bj1 = model_bj_1T(room5);
+      const bjT = model_bj_Tsweet_26(room5);
+
       const xj = model_xj(room5);
       const mj = model_mj(room5);
       const hA = model_hhh_A(room5);
       const hB = model_hhh_B(room5);
-      const py = model_py(room5);      // ← 偏爱已替换为口诀模型
-      const bj = model_bj_struct(room5);
-      return {xj, mj, hA, hB, py, bj};
+      const py = model_py(room5);
+
+      return { bjF, bj1, bjT, xj, mj, hA, hB, py };
     }
 
     function renderCards(room5, out){
@@ -485,7 +501,13 @@
       ];
       const hTagsB = [{t:"模型B：只出4/5对冲", cls:"amber"}];
 
+      // ✅ 八戒三张卡放最上方（最终/1T/2~6）
       gridEl.innerHTML = [
+        cardHTML({name:"八戒最终推荐（只输出一个）", seatText: out.bjF.seatBig, extra: out.bjF.extra, tags: out.bjF.tags || []}),
+        cardHTML({name:"八戒1号位T终极模型", seatText: out.bj1.seatBig, extra: out.bj1.extra, tags: out.bj1.tags || []}),
+        cardHTML({name:"八戒T双甜点结构版（2~6）", seatText: out.bjT.seatBig, extra: out.bjT.extra, tags: out.bjT.tags || []}),
+
+        // 其它模型保持原样
         cardHTML({name:"蜡笔小新", seatText: `${out.xj.seat}号`, extra: out.xj.extra}),
         cardHTML({name:"梦见", seatText: `${out.mj.seat}号`, extra: out.mj.extra}),
         cardHTML({name:"呵呵呵（模型A）", seatText: `${out.hA.seat}号`, extra: out.hA.extra, tags: hTagsA}),
@@ -497,10 +519,9 @@
           seatText: (out.py.seat ? `${out.py.seat}号` : "不打"),
           extra: out.py.extra,
           tags: out.py.seat ? [{t:"✅可打", cls:"green"}] : [{t:"❌不打", cls:"red"}]
-        }),
-
-        cardHTML({name:"八戒（结构匹配位）", seatText: out.bj.seatBig || "跳", extra: out.bj.extra, tags: out.bj.tags || []})
+        })
       ].join("");
+
       gridEl.style.display = "grid";
     }
 
@@ -541,7 +562,7 @@
     function renderHistory(){
       const arr = loadHistory();
       if(arr.length === 0){
-        histBodyEl.innerHTML = `<tr><td colspan="9" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>`;
+        histBodyEl.innerHTML = `<tr><td colspan="12" style="color:rgba(255,255,255,.55);">暂无记录</td></tr>`;
         return;
       }
 
@@ -549,12 +570,17 @@
         <tr>
           <td class="mono">${escapeHtml(fmtTime(row.ts))}</td>
           <td class="mono">${escapeHtml(row.room)}</td>
+
+          <td class="mono">${escapeHtml(row.bjF)}</td>
+          <td class="mono">${escapeHtml(row.bj1)}</td>
+          <td class="mono">${escapeHtml(row.bjT)}</td>
+
           <td class="mono">${escapeHtml(row.xj)}</td>
           <td class="mono">${escapeHtml(row.mj)}</td>
           <td class="mono">${escapeHtml(row.hA)}</td>
           <td class="mono">${escapeHtml(row.hB)}</td>
           <td class="mono">${escapeHtml(row.py)}</td>
-          <td class="mono">${escapeHtml(row.bj)}</td>
+
           <td><span class="del" data-del="${escapeHtml(row.id)}">删</span></td>
         </tr>
       `).join("");
@@ -581,7 +607,6 @@
       setTimeout(()=>{ msgEl.textContent=""; }, 900);
     }
 
-    // copyAll里会用到：取“座位前缀”
     function seatOnly(s){
       const left = String(s).split("｜")[0];
       return left;
@@ -589,14 +614,24 @@
 
     function buildCopyLine(room5, out){
       const t = fmtTime(Date.now());
-      const bjShort = (out.bj.action === "play")
-        ? (out.bj.no2 ? `推荐No1:${out.bj.no1} 推荐No2:${out.bj.no2}` : `推荐No1:${out.bj.no1}`)
-        : "跳";
+      const {B,C,D,E} = parseABCDE(room5);
+      const T1 = B + C + D + E;
 
-      // 偏爱：可能“不打”
+      const bjFinalShort = (out.bjF.action === "play")
+        ? `${out.bjF.seat}号(最终)`
+        : "跳(最终)";
+
+      const bj1Short = (out.bj1.action === "play")
+        ? `1号(优质T T1=${T1})`
+        : `跳(T1=${T1})`;
+
+      const bjTShort = (out.bjT.action === "play")
+        ? `${out.bjT.seat}号(双甜点)`
+        : "跳(未命中)";
+
       const pySeatText = out.py.seat ? `${out.py.seat}` : "不打";
 
-      return `${t} ${room5} ｜ 小新${out.xj.seat} 梦见${out.mj.seat} 呵A${out.hA.seat} 呵B${out.hB.seat} 偏爱${pySeatText} 八戒(${bjShort})`;
+      return `${t} ${room5} ｜ 八戒最终:${bjFinalShort} 八戒1T:${bj1Short} 八戒2~6:${bjTShort} ｜ 小新${out.xj.seat} 梦见${out.mj.seat} 呵A${out.hA.seat} 呵B${out.hB.seat} 偏爱${pySeatText}`;
     }
 
     function exportCSV(){
@@ -606,10 +641,10 @@
         setTimeout(()=>{ msgEl.textContent=""; }, 900);
         return;
       }
-      const header = ["time","room","xj","mj","hhhA","hhhB","pianai","bajie_struct"];
+      const header = ["time","room","bajie_final","bajie_1T","bajie_T_26","xj","mj","hhhA","hhhB","pianai"];
       const rows = arr.map(r => [
         new Date(r.ts).toISOString(),
-        r.room, r.xj, r.mj, r.hA, r.hB, r.py, r.bj
+        r.room, r.bjF, r.bj1, r.bjT, r.xj, r.mj, r.hA, r.hB, r.py
       ]);
       const csv = [header, ...rows]
         .map(line => line.map(x => `"${String(x).replaceAll('"','""')}"`).join(","))
@@ -643,23 +678,34 @@
 
       lastTextToCopy = buildCopyLine(s, out);
 
-      const bjShort = (out.bj.action === "play")
-        ? (out.bj.no2 ? `推荐No1:${out.bj.no1}号｜推荐No2:${out.bj.no2}号` : `推荐No1:${out.bj.no1}号`)
-        : `跳｜${out.bj.extra}`;
+      const bjFShort = (out.bjF.action === "play")
+        ? `${out.bjF.seat}号｜${out.bjF.extra}`
+        : `跳｜${out.bjF.extra}`;
 
-      // 偏爱：seat可能是null
+      const bj1Short = (out.bj1.action === "play")
+        ? `1号｜${out.bj1.extra}`
+        : `跳｜${out.bj1.extra}`;
+
+      const bjTShort = (out.bjT.action === "play")
+        ? `${out.bjT.seat}号｜${out.bjT.extra}`
+        : `跳｜${out.bjT.extra}`;
+
       const pySeatPrefix = (out.py.seat ?? "不打");
 
       addHistory({
         id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
         ts: Date.now(),
         room: s,
+
+        bjF: bjFShort,
+        bj1: bj1Short,
+        bjT: bjTShort,
+
         xj: `${out.xj.seat}｜${out.xj.extra}`,
         mj: `${out.mj.seat}｜${out.mj.extra}`,
         hA: `${out.hA.seat}｜${out.hA.extra}`,
         hB: `${out.hB.seat}｜${out.hB.extra}`,
-        py: `${pySeatPrefix}｜${out.py.extra}`,
-        bj: bjShort
+        py: `${pySeatPrefix}｜${out.py.extra}`
       });
 
       msgEl.textContent = "";
@@ -691,12 +737,11 @@
         .reverse()
         .map(r => {
           const t = fmtTime(r.ts);
-
-          // 偏爱：可能“不打”
           const pySeat = seatOnly(r.py);
 
-          return `${t} ${r.room} ｜ 小新${seatOnly(r.xj)} 梦见${seatOnly(r.mj)} 呵A${seatOnly(r.hA)} 呵B${seatOnly(r.hB)} 偏爱${pySeat} 八戒(${r.bj.split("｜")[0]})`;
+          return `${t} ${r.room} ｜ 八戒最终(${seatOnly(r.bjF)}) 八戒1T(${seatOnly(r.bj1)}) 八戒2~6(${seatOnly(r.bjT)}) ｜ 小新${seatOnly(r.xj)} 梦见${seatOnly(r.mj)} 呵A${seatOnly(r.hA)} 呵B${seatOnly(r.hB)} 偏爱${pySeat}`;
         });
+
       copyText(lines.join("\n"));
     });
 
