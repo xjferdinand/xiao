@@ -1,4 +1,4 @@
-// sw.js（更新缓存版本号，确保你更新后能立刻生效）
+// sw.js（完整版：已提高缓存版本号，确保你更新后能立刻生效）
 const CACHE_NAME = "nb-model-pack-v8"; // ← 改版本号=强制更新缓存
 const ASSETS = [
   "./",
