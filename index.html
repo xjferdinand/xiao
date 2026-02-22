@@ -770,9 +770,33 @@
     roomEl.focus();
 
     // 注册离线
-    if("serviceWorker" in navigator){
-      window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js?v=20260120"));
+    if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      const reg = await navigator.serviceWorker.register("./sw.js?v=20260120"); // 你已有②：带版本号
+
+      // 仅当URL带 ?nuke=1 才执行一次性清缓存 + 注销
+      const url = new URL(location.href);
+      if (url.searchParams.get("nuke") === "1") {
+        // 等 SW ready 后发消息给 active / waiting / installing 任意一个
+        const readyReg = await navigator.serviceWorker.ready;
+        const sw = readyReg.active || readyReg.waiting || readyReg.installing;
+
+        if (sw) {
+          sw.postMessage({ type: "NUKE_SW" });
+        }
+
+        // 给SW一点时间执行，再强制刷新到“无参数”的干净URL
+        setTimeout(() => {
+          url.searchParams.delete("nuke");
+          location.replace(url.toString());
+        }, 900);
+      }
+    } catch (e) {
+      // 忽略
     }
+  });
+}
   </script>
 </body>
 </html>
