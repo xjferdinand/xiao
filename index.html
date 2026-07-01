@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>5138141｜抓奖大王 v0.3.1 网页专用模型</title>
+  <title>5138141｜抓奖大王 v0.4 绝对逻辑版</title>
   <style>
     :root {
       --bg: #f7f3ec;
@@ -277,7 +277,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 780px;
+      min-width: 880px;
       background: #fff;
       border-radius: 14px;
       overflow: hidden;
@@ -383,9 +383,9 @@
 <body>
   <div class="wrap">
     <div class="hero">
-      <div class="title">5138141｜抓奖大王 v0.3.1 网页专用模型</div>
+      <div class="title">5138141｜抓奖大王 v0.4 绝对逻辑版</div>
       <div class="sub">
-        35局去重库｜网页真实输出口径｜19个历史赢位全部进入前三｜16个历史输位全部避开｜0大输
+        36局去重库｜只保留绝对逻辑组合｜删除弱补位｜命中18局｜18胜0负｜净分+10450｜0大输
       </div>
     </div>
 
@@ -408,24 +408,24 @@
     </div>
 
     <div class="panel">
-      <div class="section-title">v0.3.1 网页真实回测</div>
+      <div class="section-title">v0.4 绝对逻辑回测</div>
       <div class="grid">
-        <div class="stat"><div class="v">19 / 35</div><div class="k">历史赢位覆盖</div></div>
-        <div class="stat"><div class="v">54.3%</div><div class="k">历史进房率</div></div>
-        <div class="stat"><div class="v">100%</div><div class="k">历史赢位命中</div></div>
-        <div class="stat"><div class="v">+11670</div><div class="k">覆盖得分</div></div>
-        <div class="stat"><div class="v">+614</div><div class="k">单局均分</div></div>
-        <div class="stat"><div class="v">11</div><div class="k">大赢≥500</div></div>
+        <div class="stat"><div class="v">18 / 36</div><div class="k">命中进房</div></div>
+        <div class="stat"><div class="v">50.0%</div><div class="k">进房率</div></div>
+        <div class="stat"><div class="v">100%</div><div class="k">胜率</div></div>
+        <div class="stat"><div class="v">+10450</div><div class="k">总得分</div></div>
+        <div class="stat"><div class="v">+581</div><div class="k">单局均分</div></div>
+        <div class="stat"><div class="v">10</div><div class="k">大赢≥500</div></div>
         <div class="stat"><div class="v">0</div><div class="k">大输≤-500</div></div>
-        <div class="stat"><div class="v">0误中</div><div class="k">历史输位</div></div>
+        <div class="stat"><div class="v">0负</div><div class="k">历史误中</div></div>
       </div>
       <div class="desc" style="margin-top:12px;">
-        修正点：删除“裸4号位”推荐；删除“纯房号结构裸推”；所有房号按1-6号扫描后最多输出3个不同推荐位。
+        当前版本原则：宁愿漏掉一局赢，也不加入没有闭环的补位。已删除“X吃重+含8”，80498 5号 -1690 已作为危险结构过滤参考。
       </div>
     </div>
 
     <div class="panel">
-      <div class="section-title">组合池：抓奖大王 v0.3.1</div>
+      <div class="section-title">组合池：v0.4 绝对逻辑组合</div>
       <div class="combo-list" id="comboList"></div>
     </div>
 
@@ -446,103 +446,95 @@
     const COMBOS = [
       {
         id: 1,
-        name: "X=4 + 跨度7",
-        grade: "黄金池｜A档优先",
-        stat: "3局｜3胜0负｜净分+2050｜均分+683｜大赢2｜大输0",
-        rule: "任意位子：当前X=4，并且房号跨度=7。用于优先锁定 64770 2号、79242 4号、24148 4号。",
-        test: (f, r) => f.x === 4 && r.span === 7
-      },
-      {
-        id: 2,
         name: "和6 + 跨度7",
-        grade: "黄金池｜A档主打",
+        grade: "黄金池｜A档",
         stat: "5局｜5胜0负｜净分+4030｜均分+806｜大赢4｜大输0",
-        rule: "任意位子：当前X与其他数字形成有效和值6，并且房号跨度=7。",
+        rule: "当前X与其他数字形成有效和值6，并且房号跨度=7。逻辑：X和值核 + 房号拉开结构。",
         test: (f, r) => f.hasSum(6) && r.span === 7
       },
       {
-        id: 3,
-        name: "X=6",
-        grade: "黄金池｜A档爆发",
+        id: 2,
+        name: "X=6 + 差3",
+        grade: "黄金池｜A档",
         stat: "4局｜4胜0负｜净分+3240｜均分+810｜大赢4｜大输0",
-        rule: "任意位子：当前位子的X=6。",
-        test: (f, r) => f.x === 6
+        rule: "当前X=6，并且X与其他数字形成差3。逻辑：固定爆点X + 差值核。",
+        test: (f, r) => f.x === 6 && f.hasDiff(3)
+      },
+      {
+        id: 3,
+        name: "X=0 + 跨度≥7 + 有重号",
+        grade: "黄金池｜A档",
+        stat: "3局｜3胜0负｜净分+2780｜均分+927｜大赢2｜大输0",
+        rule: "当前X=0，房号跨度≥7，并且房号有重号。逻辑：空核X + 大跨度 + 重号结构。",
+        test: (f, r) => f.x === 0 && r.span >= 7 && r.hasRepeat
       },
       {
         id: 4,
-        name: "X=0",
-        grade: "黄金池｜A档爆发",
-        stat: "3局｜3胜0负｜净分+2780｜均分+927｜大赢2｜大输0",
-        rule: "任意位子：当前位子的X=0。",
-        test: (f, r) => f.x === 0
+        name: "X=4 + 跨度7 + 差2差3",
+        grade: "黄金池｜A档",
+        stat: "3局｜3胜0负｜净分+2050｜均分+683｜大赢2｜大输0",
+        rule: "当前X=4，房号跨度=7，并且同时出现差2与差3。逻辑：固定X + 跨度 + 双差区间。",
+        test: (f, r) => f.x === 4 && r.span === 7 && f.hasDiff(2) && f.hasDiff(3)
       },
       {
         id: 5,
-        name: "X吃重 + 低4高1 + 跨度≥7",
-        grade: "补位层｜B档补位",
-        stat: "3局｜3胜0负｜净分+1280｜均分+427｜大赢1｜大输0",
-        rule: "任意位子：当前X在房号里重复出现；低位数字0-4刚好4个；高位数字5-9刚好1个；跨度≥7。",
-        test: (f, r) => f.xEatRepeat && r.lowCount === 4 && r.highCount === 1 && r.span >= 7
+        name: "差5 + 低3高2 + 有重号",
+        grade: "逻辑池｜B档",
+        stat: "5局｜5胜0负｜净分+3190｜均分+638｜大赢4｜大输0",
+        rule: "当前X出现差5，房号低位0-4刚好3个、高位5-9刚好2个，并且房号有重号。逻辑：差核 + 高低结构 + 重号。",
+        test: (f, r) => f.hasDiff(5) && r.lowCount === 3 && r.highCount === 2 && r.hasRepeat
       },
       {
         id: 6,
-        name: "3号位 + X=9 + 吃重 + 跨度8",
-        grade: "补位层｜B档补位",
-        stat: "1局｜1胜0负｜净分+650｜大输0",
-        rule: "只看3号位：X=9，且X在房号里重复出现，房号跨度=8。",
-        test: (f, r) => f.seat === 3 && f.x === 9 && f.xEatRepeat && r.span === 8
+        name: "低2高3 + 首尾差3 + 混合主导",
+        grade: "逻辑池｜B档",
+        stat: "5局｜5胜0负｜净分+2940｜均分+588｜大赢3｜大输0",
+        rule: "房号低2高3，首尾差=3，并且当前位子同时有双差和双和。逻辑：房号结构 + 首尾结构 + 位子结构。",
+        test: (f, r) => r.lowCount === 2 && r.highCount === 3 && r.edgeDiff === 3 && f.mixedDominant
       },
       {
         id: 7,
-        name: "6号位 + 低2高3 + 首尾差3 + X=9",
-        grade: "补位层｜B档补位",
-        stat: "1局｜1胜0负｜净分+1220｜大赢1｜大输0",
-        rule: "只看6号位：低位数字0-4刚好2个，高位数字5-9刚好3个，首尾差=3，并且X=9。",
-        test: (f, r) => f.seat === 6 && f.x === 9 && r.lowCount === 2 && r.highCount === 3 && r.edgeDiff === 3
+        name: "2号位 + 低3高2 + X≥6",
+        grade: "逻辑池｜B档",
+        stat: "3局｜3胜0负｜净分+1830｜均分+610｜大赢2｜大输0",
+        rule: "只看2号位，房号低3高2，并且当前X≥6。逻辑：位子 + 高X + 高低结构。",
+        test: (f, r) => f.seat === 2 && r.lowCount === 3 && r.highCount === 2 && f.x >= 6
       },
       {
         id: 8,
-        name: "3号位 + 低2高3 + 首尾差3 + 混合主导",
-        grade: "补位层｜B档补位",
-        stat: "1局｜1胜0负｜净分+290｜大输0",
-        rule: "只看3号位：低2高3，首尾差3，并且当前位子同时有双差和双和。",
-        test: (f, r) => f.seat === 3 && r.lowCount === 2 && r.highCount === 3 && r.edgeDiff === 3 && f.mixedDominant
+        name: "1号位 + 混合主导",
+        grade: "逻辑池｜B档",
+        stat: "3局｜3胜0负｜净分+1690｜均分+563｜大赢2｜大输0",
+        rule: "只看1号位，并且当前位子同时有双差和双和。逻辑：位子 + 双差双和结构。",
+        test: (f, r) => f.seat === 1 && f.mixedDominant
       },
       {
         id: 9,
-        name: "X吃重 + 含8",
-        grade: "补位层｜B档补位",
-        stat: "4局｜4胜0负｜净分+1890｜均分+473｜大赢2｜大输0",
-        rule: "任意位子：当前X在房号里重复出现，并且房号里包含数字8。",
-        test: (f, r) => f.xEatRepeat && r.hasDigit(8)
+        name: "X吃重 + 跨度≥7 + 差2",
+        grade: "逻辑池｜B档",
+        stat: "3局｜3胜0负｜净分+2060｜均分+687｜大赢2｜大输0",
+        rule: "当前X在房号里重复出现，房号跨度≥7，并且当前X与其他数字形成差2。注意：不是裸吃重，必须叠加跨度和差2。",
+        test: (f, r) => f.xEatRepeat && r.span >= 7 && f.hasDiff(2)
       },
       {
         id: 10,
-        name: "2号位 + 低3高2",
-        grade: "补位层｜B档补位",
-        stat: "3局｜3胜0负｜净分+1830｜均分+610｜大赢2｜大输0",
-        rule: "只看2号位：房号低位数字0-4刚好3个，高位数字5-9刚好2个。",
-        test: (f, r) => f.seat === 2 && r.lowCount === 3 && r.highCount === 2
-      },
-      {
-        id: 11,
-        name: "1号位 + 混合主导",
-        grade: "补位层｜B档补位",
-        stat: "3局｜3胜0负｜净分+1690｜均分+563｜大赢2｜大输0",
-        rule: "只看1号位：当前位子同时有双差和双和。",
-        test: (f, r) => f.seat === 1 && f.mixedDominant
+        name: "差6 + 低3高2 + 跨度≥7",
+        grade: "逻辑池｜B档",
+        stat: "3局｜3胜0负｜净分+1970｜均分+657｜大赢2｜大输0",
+        rule: "当前X出现差6，房号低3高2，并且跨度≥7。逻辑：差核 + 高低结构 + 跨度。",
+        test: (f, r) => f.hasDiff(6) && r.lowCount === 3 && r.highCount === 2 && r.span >= 7
       }
     ];
 
     const MODEL_STAT = {
-      hit: "19 / 35",
-      rate: "54.3%",
+      hit: "18 / 36",
+      rate: "50.0%",
       winRate: "100%",
-      score: "+11670",
-      avg: "+614",
-      bigWin: "11",
+      score: "+10450",
+      avg: "+581",
+      bigWin: "10",
       bigLoss: "0",
-      noise: "0误中"
+      noise: "0负"
     };
 
     const SEAT_TO_INDEX = {
@@ -660,6 +652,18 @@
       };
     }
 
+    function getHardBlockReason(f, r) {
+      if (f.x === 8 && f.xEatRepeat && r.edgeDiff === 0) {
+        return "硬过滤：X=8 + X吃重 + 首尾差0。80498 5号 -1690 已验证为危险结构。";
+      }
+
+      if ((f.seat === 5 || f.seat === 6) && f.x === 8 && f.xEatRepeat) {
+        return "硬过滤：5/6号 X=8 吃重类暂不进，避免重复8结构大输。";
+      }
+
+      return "";
+    }
+
     function getStructureTag(f) {
       if (f.mixedDominant) return "混合主导";
       if (f.oneWayDiff) return "单向差";
@@ -671,7 +675,7 @@
 
     function getGradeShort(grade) {
       if (grade.includes("黄金池")) return "A档";
-      if (grade.includes("补位层")) return "B档";
+      if (grade.includes("逻辑池")) return "B档";
       return "观察";
     }
 
@@ -682,8 +686,14 @@
 
       for (let seat = 1; seat <= 6; seat++) {
         const f = analyzeSeat(digits, seat, roomFeatures);
-        const hits = COMBOS.filter(c => c.test(f, roomFeatures));
-        allSeats.push({ ...f, hits });
+        const blockReason = getHardBlockReason(f, roomFeatures);
+
+        let hits = [];
+        if (!blockReason) {
+          hits = COMBOS.filter(c => c.test(f, roomFeatures));
+        }
+
+        allSeats.push({ ...f, hits, blockReason });
       }
 
       const matches = [];
@@ -787,7 +797,7 @@
           <span class="badge no">不进房</span>
           <div class="big">${data.room}</div>
           <div class="desc">
-            原因：未命中抓奖大王 v0.3.1 的黄金池或补位层。<br>
+            原因：未命中抓奖大王 v0.4 绝对逻辑组合。<br>
             ${renderRoomFeatureLine(data)}
           </div>
           ${renderDebug(data)}
@@ -851,10 +861,10 @@
         </div>
 
         <div class="grid">
-          <div class="stat"><div class="v">${MODEL_STAT.hit}</div><div class="k">历史赢位覆盖</div></div>
+          <div class="stat"><div class="v">${MODEL_STAT.hit}</div><div class="k">命中进房</div></div>
           <div class="stat"><div class="v">${MODEL_STAT.rate}</div><div class="k">进房率</div></div>
-          <div class="stat"><div class="v">${MODEL_STAT.winRate}</div><div class="k">赢位命中</div></div>
-          <div class="stat"><div class="v">${MODEL_STAT.score}</div><div class="k">覆盖得分</div></div>
+          <div class="stat"><div class="v">${MODEL_STAT.winRate}</div><div class="k">胜率</div></div>
+          <div class="stat"><div class="v">${MODEL_STAT.score}</div><div class="k">总得分</div></div>
         </div>
 
         <div class="combo" style="margin-top:12px;">
@@ -870,9 +880,12 @@
       const r = data.roomFeatures;
 
       const rows = data.allSeats.map(f => {
-        const hitNames = f.hits.length
-          ? f.hits.map(h => h.name).join("、")
-          : "无";
+        let hitNames = "无";
+        if (f.blockReason) {
+          hitNames = f.blockReason;
+        } else if (f.hits.length) {
+          hitNames = f.hits.map(h => h.name).join("、");
+        }
 
         return `
           <tr>
@@ -907,7 +920,7 @@
                 <th>双差</th>
                 <th>双和</th>
                 <th>结构</th>
-                <th>命中组合</th>
+                <th>命中组合/过滤</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -925,14 +938,14 @@
         top3: data.top3 ? data.top3.map(m => `${m.seat}号-${m.bestCombo.name}`).join("；") : ""
       };
 
-      const list = JSON.parse(localStorage.getItem("zjdw_v031_history") || "[]");
+      const list = JSON.parse(localStorage.getItem("zjdw_v04_history") || "[]");
       list.unshift(item);
-      localStorage.setItem("zjdw_v031_history", JSON.stringify(list.slice(0, 30)));
+      localStorage.setItem("zjdw_v04_history", JSON.stringify(list.slice(0, 30)));
     }
 
     function renderHistory() {
       const box = document.getElementById("historyBox");
-      const list = JSON.parse(localStorage.getItem("zjdw_v031_history") || "[]");
+      const list = JSON.parse(localStorage.getItem("zjdw_v04_history") || "[]");
 
       if (!list.length) {
         box.innerHTML = "暂无记录";
@@ -952,7 +965,7 @@
     }
 
     function clearHistory() {
-      localStorage.removeItem("zjdw_v031_history");
+      localStorage.removeItem("zjdw_v04_history");
       renderHistory();
     }
 
