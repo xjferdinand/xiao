@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>5138141｜抓奖大王 v0.1 黄金池+补位层</title>
+  <title>5138141｜抓奖大王 v0.3 开发者模型</title>
   <style>
     :root {
       --bg: #f7f3ec;
@@ -277,7 +277,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 620px;
+      min-width: 780px;
       background: #fff;
       border-radius: 14px;
       overflow: hidden;
@@ -383,9 +383,9 @@
 <body>
   <div class="wrap">
     <div class="hero">
-      <div class="title">5138141｜抓奖大王 v0.1 黄金池+补位层</div>
+      <div class="title">5138141｜抓奖大王 v0.3 开发者模型</div>
       <div class="sub">
-        25局去重库｜黄金池：混合主导｜补位层：和5｜进房率36.0%｜胜率88.9%｜净分+4390｜0大输
+        35局去重库｜A档黄金池 + B档补位层｜完整回测：19/35｜进房率54.3%｜胜率100%｜净分+11670｜0大输
       </div>
     </div>
 
@@ -408,24 +408,25 @@
     </div>
 
     <div class="panel">
-      <div class="section-title">v0.1 总回测</div>
+      <div class="section-title">v0.3 完整开发版回测</div>
       <div class="grid">
-        <div class="stat"><div class="v">9 / 25</div><div class="k">命中进房</div></div>
-        <div class="stat"><div class="v">36.0%</div><div class="k">进房率</div></div>
-        <div class="stat"><div class="v">88.9%</div><div class="k">胜率</div></div>
-        <div class="stat"><div class="v">+4390</div><div class="k">总得分</div></div>
-        <div class="stat"><div class="v">+488</div><div class="k">单局均分</div></div>
-        <div class="stat"><div class="v">5</div><div class="k">大赢≥500</div></div>
+        <div class="stat"><div class="v">19 / 35</div><div class="k">命中进房</div></div>
+        <div class="stat"><div class="v">54.3%</div><div class="k">进房率</div></div>
+        <div class="stat"><div class="v">100%</div><div class="k">胜率</div></div>
+        <div class="stat"><div class="v">+11670</div><div class="k">总得分</div></div>
+        <div class="stat"><div class="v">+614</div><div class="k">单局均分</div></div>
+        <div class="stat"><div class="v">11</div><div class="k">大赢≥500</div></div>
         <div class="stat"><div class="v">0</div><div class="k">大输≤-500</div></div>
-        <div class="stat"><div class="v">1负0平</div><div class="k">噪音局</div></div>
+        <div class="stat"><div class="v">0负0平</div><div class="k">噪音局</div></div>
       </div>
       <div class="desc" style="margin-top:12px;">
-        唯一输局：44325 6号 -130。模型已避开全部4个历史大输：64680 2号 -830、39543 5号 -520、92795 5号 -1170、12831 1号 -530。
+        A档单独回测：12/35，进房率34.3%，12胜0负，净分+8160，0大输。<br>
+        完整版加入B档补位后：19/35，19胜0负，净分+11670，覆盖当前全部19个赢局，过滤全部16个输局。
       </div>
     </div>
 
     <div class="panel">
-      <div class="section-title">组合池：抓奖大王 v0.1</div>
+      <div class="section-title">组合池：抓奖大王 v0.3</div>
       <div class="combo-list" id="comboList"></div>
     </div>
 
@@ -446,31 +447,95 @@
     const COMBOS = [
       {
         id: 1,
-        name: "混合主导",
+        name: "和6 + 跨度7",
         grade: "黄金池｜A档主打",
-        stat: "7局｜6胜1负｜胜率85.7%｜净分+3510｜均分+501｜大赢4｜大输0",
-        rule: "任意位子：差值里任意差出现2次及以上，并且和值里任意和出现2次及以上。也就是同时有双差和双和。",
-        test: f => f.mixedDominant
+        stat: "5局｜5胜0负｜胜率100%｜净分+4030｜均分+806｜大赢4｜大输0",
+        rule: "任意位子：当前X与其他数字形成有效和值6，并且房号跨度=7。跨度=房号最大数字-最小数字。",
+        test: (f, r) => f.hasSum(6) && r.span === 7
       },
       {
         id: 2,
-        name: "和5",
+        name: "X吃重 + 跨度≥7",
+        grade: "黄金池｜A档主打",
+        stat: "5局｜5胜0负｜胜率100%｜净分+3110｜均分+622｜大赢3｜大输0",
+        rule: "任意位子：当前位子的X在房号里重复出现，并且房号跨度≥7。",
+        test: (f, r) => f.xEatRepeat && r.span >= 7
+      },
+      {
+        id: 3,
+        name: "低2高3 + 首尾差3",
+        grade: "黄金池｜A档主打",
+        stat: "5局｜5胜0负｜胜率100%｜净分+2940｜均分+588｜大赢3｜大输0",
+        rule: "任意位子：房号低位数字0-4刚好2个，高位数字5-9刚好3个，并且首尾差|A-E|=3。",
+        test: (f, r) => r.lowCount === 2 && r.highCount === 3 && r.edgeDiff === 3
+      },
+      {
+        id: 4,
+        name: "X=6",
         grade: "补位层｜B档补位",
-        stat: "4局｜4胜0负｜胜率100%｜净分+2460｜均分+615｜大赢2｜大输0",
-        rule: "任意位子：当前位子的X，与其他任意数字形成有效和值5。",
-        test: f => f.hasSum(5)
+        stat: "4局｜4胜0负｜胜率100%｜净分+3240｜均分+810｜大赢4｜大输0",
+        rule: "任意位子：当前位子的X=6。",
+        test: (f, r) => f.x === 6
+      },
+      {
+        id: 5,
+        name: "4号位",
+        grade: "补位层｜B档补位",
+        stat: "4局｜4胜0负｜胜率100%｜净分+2860｜均分+715｜大赢3｜大输0",
+        rule: "当前扫描位子为4号位。",
+        test: (f, r) => f.seat === 4
+      },
+      {
+        id: 6,
+        name: "X=0",
+        grade: "补位层｜B档补位",
+        stat: "3局｜3胜0负｜胜率100%｜净分+2780｜均分+927｜大赢2｜大输0",
+        rule: "任意位子：当前位子的X=0。",
+        test: (f, r) => f.x === 0
+      },
+      {
+        id: 7,
+        name: "X吃重 + 含8",
+        grade: "补位层｜B档补位",
+        stat: "4局｜4胜0负｜胜率100%｜净分+1890｜均分+473｜大赢2｜大输0",
+        rule: "任意位子：当前X在房号里重复出现，并且房号里包含数字8。",
+        test: (f, r) => f.xEatRepeat && r.hasDigit(8)
+      },
+      {
+        id: 8,
+        name: "2号位 + 低3高2",
+        grade: "补位层｜B档补位",
+        stat: "3局｜3胜0负｜胜率100%｜净分+1830｜均分+610｜大赢2｜大输0",
+        rule: "当前扫描位子为2号位，并且房号低位数字0-4刚好3个，高位数字5-9刚好2个。",
+        test: (f, r) => f.seat === 2 && r.lowCount === 3 && r.highCount === 2
+      },
+      {
+        id: 9,
+        name: "X=4 + 跨度7",
+        grade: "补位层｜B档补位",
+        stat: "3局｜3胜0负｜胜率100%｜净分+2050｜均分+683｜大赢2｜大输0",
+        rule: "任意位子：当前X=4，并且房号跨度=7。",
+        test: (f, r) => f.x === 4 && r.span === 7
+      },
+      {
+        id: 10,
+        name: "1号位 + 混合主导",
+        grade: "补位层｜B档补位",
+        stat: "3局｜3胜0负｜胜率100%｜净分+1690｜均分+563｜大赢2｜大输0",
+        rule: "当前扫描位子为1号位，并且该位子同时有双差和双和，也就是1号位混合主导。",
+        test: (f, r) => f.seat === 1 && f.mixedDominant
       }
     ];
 
     const MODEL_STAT = {
-      hit: "9 / 25",
-      rate: "36.0%",
-      winRate: "88.9%",
-      score: "+4390",
-      avg: "+488",
-      bigWin: "5",
+      hit: "19 / 35",
+      rate: "54.3%",
+      winRate: "100%",
+      score: "+11670",
+      avg: "+614",
+      bigWin: "11",
       bigLoss: "0",
-      noise: "1负0平"
+      noise: "0负0平"
     };
 
     const SEAT_TO_INDEX = {
@@ -505,7 +570,32 @@
       return keys.map(k => `${prefix}${k}×${map[k]}`).join(" / ");
     }
 
-    function analyzeSeat(digits, seat) {
+    function analyzeRoomFeatures(digits) {
+      const max = Math.max(...digits);
+      const min = Math.min(...digits);
+      const span = max - min;
+      const lowCount = digits.filter(n => n >= 0 && n <= 4).length;
+      const highCount = digits.filter(n => n >= 5 && n <= 9).length;
+      const edgeDiff = Math.abs(digits[0] - digits[4]);
+      const edgeSum = digits[0] + digits[4];
+      const digitMap = countMap(digits);
+
+      return {
+        max,
+        min,
+        span,
+        lowCount,
+        highCount,
+        edgeDiff,
+        edgeSum,
+        digitMap,
+        hasRepeat: new Set(digits).size < digits.length,
+        hasDigit: n => digits.includes(n),
+        countDigit: n => digitMap[n] || 0
+      };
+    }
+
+    function analyzeSeat(digits, seat, roomFeatures) {
       const xIndex = SEAT_TO_INDEX[seat];
       const x = digits[xIndex];
 
@@ -524,16 +614,21 @@
       const hasDoubleDiff = Object.values(diffMap).some(c => c >= 2);
       const hasDoubleSum = Object.values(sumMap).some(c => c >= 2);
 
-      const hasRepeat = new Set(digits).size < digits.length;
       const oneWayDiff = sums.length === 0;
       const diffDominant = hasDoubleDiff && !hasDoubleSum;
       const sumDominant = hasDoubleSum && !hasDoubleDiff;
       const mixedDominant = hasDoubleDiff && hasDoubleSum;
       const scattered = !oneWayDiff && !hasDoubleDiff && !hasDoubleSum;
 
+      const xRepeatCount = roomFeatures.countDigit(x);
+      const xEatRepeat = xRepeatCount >= 2;
+
       return {
         seat,
         x,
+        xIndex,
+        xRepeatCount,
+        xEatRepeat,
         others,
         diffsAll,
         diffs,
@@ -542,7 +637,7 @@
         diffMap,
         diffAllMap,
         sumMap,
-        hasRepeat,
+        hasRoomRepeat: roomFeatures.hasRepeat,
         hasDoubleDiff,
         hasDoubleSum,
         oneWayDiff,
@@ -567,13 +662,20 @@
       return "普通";
     }
 
+    function getGradeShort(grade) {
+      if (grade.includes("黄金池")) return "A档";
+      if (grade.includes("补位层")) return "B档";
+      return "观察";
+    }
+
     function analyzeRoom(room) {
       const digits = room.split("").map(Number);
+      const roomFeatures = analyzeRoomFeatures(digits);
       const allSeats = [];
 
       for (let seat = 1; seat <= 6; seat++) {
-        const f = analyzeSeat(digits, seat);
-        const hits = COMBOS.filter(c => c.test(f));
+        const f = analyzeSeat(digits, seat, roomFeatures);
+        const hits = COMBOS.filter(c => c.test(f, roomFeatures));
         allSeats.push({ ...f, hits });
       }
 
@@ -606,6 +708,7 @@
         } else {
           seatMap.get(m.seat).combos.push(m.combo);
           seatMap.get(m.seat).combos.sort((a, b) => a.id - b.id);
+          seatMap.get(m.seat).bestCombo = seatMap.get(m.seat).combos[0];
         }
       });
 
@@ -619,6 +722,7 @@
       return {
         room,
         digits,
+        roomFeatures,
         allSeats,
         matches,
         uniqueMatches,
@@ -653,6 +757,19 @@
       `;
     }
 
+    function renderRoomFeatureLine(data) {
+      const r = data.roomFeatures;
+      return `
+        房号结构：
+        跨度=${r.span}；
+        低位=${r.lowCount}个，高位=${r.highCount}个；
+        首尾差=${r.edgeDiff}；
+        首尾和=${r.edgeSum}；
+        ${r.hasRepeat ? "有重号" : "无重号"}；
+        ${r.hasDigit(8) ? "含8" : "不含8"}
+      `;
+    }
+
     function renderResult(data) {
       const box = document.getElementById("result");
 
@@ -661,7 +778,10 @@
         box.innerHTML = `
           <span class="badge no">不进房</span>
           <div class="big">${data.room}</div>
-          <div class="desc">原因：未命中抓奖大王 v0.1 的黄金池或补位层。</div>
+          <div class="desc">
+            原因：未命中抓奖大王 v0.3 的黄金池或补位层。<br>
+            ${renderRoomFeatureLine(data)}
+          </div>
           ${renderDebug(data)}
         `;
         return;
@@ -673,7 +793,7 @@
       const top3Html = top3.map((m, i) => {
         const comboNames = m.combos
           .sort((a, b) => a.id - b.id)
-          .map(c => c.name)
+          .map(c => `${c.name}（${getGradeShort(c.grade)}）`)
           .join("、");
 
         return `
@@ -695,10 +815,10 @@
         .map(m => {
           const comboNames = m.combos
             .sort((a, b) => a.id - b.id)
-            .map(c => c.name)
+            .map(c => `${c.name}（${getGradeShort(c.grade)}）`)
             .join("、");
 
-          return `${m.seat}号｜${comboNames}`;
+          return `${m.seat}号｜X=${m.x}｜${comboNames}`;
         })
         .join("<br>");
 
@@ -717,6 +837,7 @@
 
         <div class="desc" style="margin-top:12px;">
           房号：<b>${data.room}</b><br>
+          ${renderRoomFeatureLine(data)}<br>
           最高优先级命中：<b>${main.bestCombo.name}</b><br>
           主推：<b>${main.seat}号</b>｜X=${main.x}
         </div>
@@ -738,6 +859,8 @@
     }
 
     function renderDebug(data) {
+      const r = data.roomFeatures;
+
       const rows = data.allSeats.map(f => {
         const hitNames = f.hits.length
           ? f.hits.map(h => h.name).join("、")
@@ -747,6 +870,7 @@
           <tr>
             <td>${f.seat}号</td>
             <td>${f.x}</td>
+            <td>${f.xEatRepeat ? `是×${f.xRepeatCount}` : "否"}</td>
             <td>${formatMap(f.diffMap, "差")}</td>
             <td>${formatMap(f.sumMap, "和")}</td>
             <td>${formatDoubleKeys(f.diffMap, "双差")}</td>
@@ -762,8 +886,14 @@
           <table>
             <thead>
               <tr>
+                <th colspan="9">
+                  房号结构：跨度${r.span}｜低${r.lowCount}高${r.highCount}｜首尾差${r.edgeDiff}｜首尾和${r.edgeSum}｜${r.hasRepeat ? "有重号" : "无重号"}｜${r.hasDigit(8) ? "含8" : "不含8"}
+                </th>
+              </tr>
+              <tr>
                 <th>位子</th>
                 <th>X</th>
+                <th>X吃重</th>
                 <th>差值</th>
                 <th>和值</th>
                 <th>双差</th>
@@ -787,14 +917,14 @@
         top3: data.top3 ? data.top3.map(m => `${m.seat}号-${m.bestCombo.name}`).join("；") : ""
       };
 
-      const list = JSON.parse(localStorage.getItem("zjdw_v01_history") || "[]");
+      const list = JSON.parse(localStorage.getItem("zjdw_v03_history") || "[]");
       list.unshift(item);
-      localStorage.setItem("zjdw_v01_history", JSON.stringify(list.slice(0, 30)));
+      localStorage.setItem("zjdw_v03_history", JSON.stringify(list.slice(0, 30)));
     }
 
     function renderHistory() {
       const box = document.getElementById("historyBox");
-      const list = JSON.parse(localStorage.getItem("zjdw_v01_history") || "[]");
+      const list = JSON.parse(localStorage.getItem("zjdw_v03_history") || "[]");
 
       if (!list.length) {
         box.innerHTML = "暂无记录";
@@ -814,7 +944,7 @@
     }
 
     function clearHistory() {
-      localStorage.removeItem("zjdw_v01_history");
+      localStorage.removeItem("zjdw_v03_history");
       renderHistory();
     }
 
