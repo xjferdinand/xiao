@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>5138141｜抓奖大王 v0.4 绝对逻辑版</title>
+  <title>5138141｜抓奖大王 v1.0 房号结构指纹模型</title>
   <style>
     :root {
       --bg: #f7f3ec;
@@ -173,11 +173,6 @@
       margin: 10px 0 4px;
     }
 
-    .big .seat {
-      color: var(--red);
-      font-size: 46px;
-    }
-
     .desc {
       color: var(--muted);
       line-height: 1.65;
@@ -277,7 +272,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 880px;
+      min-width: 960px;
       background: #fff;
       border-radius: 14px;
       overflow: hidden;
@@ -372,10 +367,6 @@
       .big {
         font-size: 26px;
       }
-
-      .big .seat {
-        font-size: 38px;
-      }
     }
   </style>
 </head>
@@ -383,9 +374,9 @@
 <body>
   <div class="wrap">
     <div class="hero">
-      <div class="title">5138141｜抓奖大王 v0.4 绝对逻辑版</div>
+      <div class="title">5138141｜抓奖大王 v1.0 房号结构指纹模型</div>
       <div class="sub">
-        36局去重库｜只保留绝对逻辑组合｜删除弱补位｜命中18局｜18胜0负｜净分+10450｜0大输
+        36局去重库｜房号结构指纹 + 位子绑定｜命中18局｜18胜0负｜进房率50.0%｜净分+11270｜0大输
       </div>
     </div>
 
@@ -408,24 +399,24 @@
     </div>
 
     <div class="panel">
-      <div class="section-title">v0.4 绝对逻辑回测</div>
+      <div class="section-title">v1.0 结构指纹回测</div>
       <div class="grid">
         <div class="stat"><div class="v">18 / 36</div><div class="k">命中进房</div></div>
         <div class="stat"><div class="v">50.0%</div><div class="k">进房率</div></div>
         <div class="stat"><div class="v">100%</div><div class="k">胜率</div></div>
-        <div class="stat"><div class="v">+10450</div><div class="k">总得分</div></div>
-        <div class="stat"><div class="v">+581</div><div class="k">单局均分</div></div>
-        <div class="stat"><div class="v">10</div><div class="k">大赢≥500</div></div>
+        <div class="stat"><div class="v">+11270</div><div class="k">总得分</div></div>
+        <div class="stat"><div class="v">+626</div><div class="k">单局均分</div></div>
+        <div class="stat"><div class="v">11</div><div class="k">大赢≥500</div></div>
         <div class="stat"><div class="v">0</div><div class="k">大输≤-500</div></div>
         <div class="stat"><div class="v">0负</div><div class="k">历史误中</div></div>
       </div>
       <div class="desc" style="margin-top:12px;">
-        当前版本原则：宁愿漏掉一局赢，也不加入没有闭环的补位。已删除“X吃重+含8”，80498 5号 -1690 已作为危险结构过滤参考。
+        当前版本只输出正式推荐位；弱信号不显示观察。先排除黑名单结构，再按位子绑定结构输出推荐。
       </div>
     </div>
 
     <div class="panel">
-      <div class="section-title">组合池：v0.4 绝对逻辑组合</div>
+      <div class="section-title">模型规则池</div>
       <div class="combo-list" id="comboList"></div>
     </div>
 
@@ -438,91 +429,124 @@
     </div>
 
     <div class="footer-note">
-      规则锁死：1号=A，2号=B，3号=C，4号=D，5号=E，6号=E。差0不作为有效差核；和值只统计1-9，和值>9溢出不计。最多输出3个不同推荐位。
+      规则锁死：房号ABCDE；1号=A，2号=B，3号=C，4号=D，5号=E，6号=E。当前模型不再用X差值/和值补位，只看房号结构指纹。
     </div>
   </div>
 
   <script>
-    const COMBOS = [
+    const RULES = [
       {
         id: 1,
-        name: "和6 + 跨度7",
-        grade: "黄金池｜A档",
-        stat: "5局｜5胜0负｜净分+4030｜均分+806｜大赢4｜大输0",
-        rule: "当前X与其他数字形成有效和值6，并且房号跨度=7。逻辑：X和值核 + 房号拉开结构。",
-        test: (f, r) => f.hasSum(6) && r.span === 7
+        name: "3号｜左右强失衡 / 镜像断层",
+        grade: "推荐规则｜3号",
+        stat: "历史代表：10080、67533、43378、13939｜4胜0负｜净分+1600｜0大输",
+        rule: "3号位专吃房号中轴失衡：左右差≥7 或 镜像总差≥7；但低1高4等危险房不推。",
+        test: (seat, r) => seat === 3 && !r.roomBlack && (r.lrDiff >= 7 || r.mirrorDiff >= 7)
       },
       {
         id: 2,
-        name: "X=6 + 差3",
-        grade: "黄金池｜A档",
-        stat: "4局｜4胜0负｜净分+3240｜均分+810｜大赢4｜大输0",
-        rule: "当前X=6，并且X与其他数字形成差3。逻辑：固定爆点X + 差值核。",
-        test: (f, r) => f.x === 6 && f.hasDiff(3)
+        name: "3号｜右强 + 低3高2 + 尾部拉升",
+        grade: "推荐规则｜3号",
+        stat: "历史代表：43378、13939｜2胜0负｜净分+910｜0大输",
+        rule: "房号右半区强于左半区，低3高2，且D<E尾部拉升时，3号可吃中轴反弹。",
+        test: (seat, r) => seat === 3 && !r.roomBlack && r.rightStrong && r.lowCount === 3 && r.highCount === 2 && r.tailRise
       },
       {
         id: 3,
-        name: "X=0 + 跨度≥7 + 有重号",
-        grade: "黄金池｜A档",
-        stat: "3局｜3胜0负｜净分+2780｜均分+927｜大赢2｜大输0",
-        rule: "当前X=0，房号跨度≥7，并且房号有重号。逻辑：空核X + 大跨度 + 重号结构。",
-        test: (f, r) => f.x === 0 && r.span >= 7 && r.hasRepeat
+        name: "2号｜低3高2",
+        grade: "推荐规则｜2号",
+        stat: "历史代表：16703、28328、28419｜3胜0负｜净分+1830｜0大输",
+        rule: "房号低位3个、高位2个，2号位适合吃这种低位主导但保留高点的结构。",
+        test: (seat, r) => seat === 2 && !r.roomBlack && r.lowCount === 3 && r.highCount === 2
       },
       {
         id: 4,
-        name: "X=4 + 跨度7 + 差2差3",
-        grade: "黄金池｜A档",
-        stat: "3局｜3胜0负｜净分+2050｜均分+683｜大赢2｜大输0",
-        rule: "当前X=4，房号跨度=7，并且同时出现差2与差3。逻辑：固定X + 跨度 + 双差区间。",
-        test: (f, r) => f.x === 4 && r.span === 7 && f.hasDiff(2) && f.hasDiff(3)
+        name: "4号｜重号 + 低3高2 / C=E",
+        grade: "推荐规则｜4号",
+        stat: "历史代表：79242、51901｜偏大赢结构｜0大输",
+        rule: "4号位不裸推；必须房号有重号，并且低3高2或C=E中尾重。",
+        test: (seat, r) => seat === 4 && !r.roomBlack && r.hasRepeat && (r.lowCount === 3 && r.highCount === 2 || r.CERepeat)
       },
       {
         id: 5,
-        name: "差5 + 低3高2 + 有重号",
-        grade: "逻辑池｜B档",
-        stat: "5局｜5胜0负｜净分+3190｜均分+638｜大赢4｜大输0",
-        rule: "当前X出现差5，房号低位0-4刚好3个、高位5-9刚好2个，并且房号有重号。逻辑：差核 + 高低结构 + 重号。",
-        test: (f, r) => f.hasDiff(5) && r.lowCount === 3 && r.highCount === 2 && r.hasRepeat
+        name: "4号｜重号 + 右半区12",
+        grade: "推荐规则｜4号",
+        stat: "历史代表：24148｜大赢结构｜0大输",
+        rule: "右半区D+E=12，并且房号有重号，4号可吃右半区爆发。",
+        test: (seat, r) => seat === 4 && !r.roomBlack && r.hasRepeat && r.rightSum === 12
       },
       {
         id: 6,
-        name: "低2高3 + 首尾差3 + 混合主导",
-        grade: "逻辑池｜B档",
-        stat: "5局｜5胜0负｜净分+2940｜均分+588｜大赢3｜大输0",
-        rule: "房号低2高3，首尾差=3，并且当前位子同时有双差和双和。逻辑：房号结构 + 首尾结构 + 位子结构。",
-        test: (f, r) => r.lowCount === 2 && r.highCount === 3 && r.edgeDiff === 3 && f.mixedDominant
+        name: "4号｜B=E高位重 + 尾部拉升",
+        grade: "推荐规则｜4号",
+        stat: "历史代表：47927｜小赢结构｜0大输",
+        rule: "B=E形成内前尾高位重号，并且D<E尾部拉升时，4号可轻命中；低位B=E不算。",
+        test: (seat, r) => seat === 4 && !r.roomBlack && r.BERepeat && r.B >= 5 && r.tailRise
       },
       {
         id: 7,
-        name: "2号位 + 低3高2 + X≥6",
-        grade: "逻辑池｜B档",
-        stat: "3局｜3胜0负｜净分+1830｜均分+610｜大赢2｜大输0",
-        rule: "只看2号位，房号低3高2，并且当前X≥6。逻辑：位子 + 高X + 高低结构。",
-        test: (f, r) => f.seat === 2 && r.lowCount === 3 && r.highCount === 2 && f.x >= 6
+        name: "1号｜低位重号",
+        grade: "推荐规则｜1号",
+        stat: "历史代表：63993、34124、65113｜3胜0负｜净分+1690｜0大输",
+        rule: "1号位吃低位重号支撑；但低4高1结构不推荐，避免52012这类弱房。",
+        test: (seat, r) => seat === 1 && !r.roomBlack && r.hasLowRepeat && !(r.lowCount === 4 && r.highCount === 1)
       },
       {
         id: 8,
-        name: "1号位 + 混合主导",
-        grade: "逻辑池｜B档",
-        stat: "3局｜3胜0负｜净分+1690｜均分+563｜大赢2｜大输0",
-        rule: "只看1号位，并且当前位子同时有双差和双和。逻辑：位子 + 双差双和结构。",
-        test: (f, r) => f.seat === 1 && f.mixedDominant
+        name: "5号｜C=E低位中尾重",
+        grade: "推荐规则｜5号",
+        stat: "历史代表：76020、93202｜2胜0负｜净分+1330｜0大输",
+        rule: "5号风险高，只允许C=E且E为低位；E高位、首尾同奇偶、首尾闭合全部不推。",
+        test: (seat, r) => seat === 5 && !r.roomBlack && r.CERepeat && r.E <= 4 && !r.edgeSameParity
       },
       {
         id: 9,
-        name: "X吃重 + 跨度≥7 + 差2",
-        grade: "逻辑池｜B档",
-        stat: "3局｜3胜0负｜净分+2060｜均分+687｜大赢2｜大输0",
-        rule: "当前X在房号里重复出现，房号跨度≥7，并且当前X与其他数字形成差2。注意：不是裸吃重，必须叠加跨度和差2。",
-        test: (f, r) => f.xEatRepeat && r.span >= 7 && f.hasDiff(2)
+        name: "6号｜低2高3 + 右强 + 尾部拉升",
+        grade: "推荐规则｜6号",
+        stat: "历史代表：61459｜大赢结构｜0大输",
+        rule: "6号位只看强后区结构：低2高3、右半区强、且D<E尾部拉升。",
+        test: (seat, r) => seat === 6 && !r.roomBlack && r.lowCount === 2 && r.highCount === 3 && r.rightStrong && r.tailRise
       },
       {
         id: 10,
-        name: "差6 + 低3高2 + 跨度≥7",
-        grade: "逻辑池｜B档",
-        stat: "3局｜3胜0负｜净分+1970｜均分+657｜大赢2｜大输0",
-        rule: "当前X出现差6，房号低3高2，并且跨度≥7。逻辑：差核 + 高低结构 + 跨度。",
-        test: (f, r) => f.hasDiff(6) && r.lowCount === 3 && r.highCount === 2 && r.span >= 7
+        name: "6号｜低2高3 + C=D中后重",
+        grade: "推荐规则｜6号",
+        stat: "历史代表：98006｜大赢结构｜0大输",
+        rule: "低2高3且C=D中后重，6号可吃后区稳定平台。",
+        test: (seat, r) => seat === 6 && !r.roomBlack && r.lowCount === 2 && r.highCount === 3 && r.CDRepeat
+      }
+    ];
+
+    const BLACK_RULES = [
+      {
+        name: "整房黑｜A=E首尾闭合",
+        rule: "A=E首尾闭合结构，历史5局0胜5负，大输3局。代表：80498 5号-1690。",
+        test: r => r.AERepeat
+      },
+      {
+        name: "整房黑｜降升升降走势",
+        rule: "走势为降-升-升-降，历史3局全输且全部大输。代表：64680、92795、80498。",
+        test: r => r.trendCode === "降升升降"
+      },
+      {
+        name: "整房黑｜低1高4",
+        rule: "低位1个、高位4个，历史4局0胜4负。整房降级，不推荐。",
+        test: r => r.lowCount === 1 && r.highCount === 4
+      },
+      {
+        name: "5号硬黑｜首尾同奇偶",
+        rule: "5号 + A/E同奇偶，历史5局0胜5负，大输3局。",
+        testSeat: (seat, r) => seat === 5 && r.edgeSameParity
+      },
+      {
+        name: "5号硬黑｜E高位",
+        rule: "5号 + E高位，历史3局0胜3负，大输2局。",
+        testSeat: (seat, r) => seat === 5 && r.E >= 5
+      },
+      {
+        name: "5/6号硬黑｜首尾高位闭合",
+        rule: "A=E且为高位时，5/6号不碰。80498 5号-1690已验证。",
+        testSeat: (seat, r) => (seat === 5 || seat === 6) && r.AERepeat && r.A >= 5
       }
     ];
 
@@ -530,21 +554,19 @@
       hit: "18 / 36",
       rate: "50.0%",
       winRate: "100%",
-      score: "+10450",
-      avg: "+581",
-      bigWin: "10",
-      bigLoss: "0",
-      noise: "0负"
+      score: "+11270",
+      avg: "+626",
+      bigWin: "11",
+      bigLoss: "0"
     };
 
-    const SEAT_TO_INDEX = {
-      1: 0,
-      2: 1,
-      3: 2,
-      4: 3,
-      5: 4,
-      6: 4
-    };
+    function isLow(n) {
+      return n >= 0 && n <= 4;
+    }
+
+    function isHigh(n) {
+      return n >= 5 && n <= 9;
+    }
 
     function countMap(arr) {
       const m = {};
@@ -554,198 +576,156 @@
       return m;
     }
 
-    function formatMap(map, prefix) {
-      const keys = Object.keys(map).map(Number).sort((a, b) => a - b);
-      if (!keys.length) return "无";
-      return keys.map(k => `${prefix}${k}×${map[k]}`).join(" / ");
+    function hl(n) {
+      return isLow(n) ? "低" : "高";
     }
 
-    function formatDoubleKeys(map, prefix) {
-      const keys = Object.keys(map)
-        .map(Number)
-        .filter(k => map[k] >= 2)
-        .sort((a, b) => a - b);
-      if (!keys.length) return "无";
-      return keys.map(k => `${prefix}${k}×${map[k]}`).join(" / ");
+    function oe(n) {
+      return n % 2 === 0 ? "偶" : "奇";
     }
 
-    function analyzeRoomFeatures(digits) {
-      const max = Math.max(...digits);
-      const min = Math.min(...digits);
-      const span = max - min;
-      const lowCount = digits.filter(n => n >= 0 && n <= 4).length;
-      const highCount = digits.filter(n => n >= 5 && n <= 9).length;
-      const edgeDiff = Math.abs(digits[0] - digits[4]);
-      const edgeSum = digits[0] + digits[4];
-      const digitMap = countMap(digits);
-
-      return {
-        max,
-        min,
-        span,
-        lowCount,
-        highCount,
-        edgeDiff,
-        edgeSum,
-        digitMap,
-        hasRepeat: new Set(digits).size < digits.length,
-        hasDigit: n => digits.includes(n),
-        countDigit: n => digitMap[n] || 0
-      };
-    }
-
-    function analyzeSeat(digits, seat, roomFeatures) {
-      const xIndex = SEAT_TO_INDEX[seat];
-      const x = digits[xIndex];
-
-      const others = digits.filter((_, idx) => idx !== xIndex);
-
-      const diffsAll = others.map(n => Math.abs(x - n));
-      const diffs = diffsAll.filter(v => v !== 0);
-
-      const sumsAll = others.map(n => x + n);
-      const sums = sumsAll.filter(v => v >= 1 && v <= 9);
-
-      const diffMap = countMap(diffs);
-      const diffAllMap = countMap(diffsAll);
-      const sumMap = countMap(sums);
-
-      const hasDoubleDiff = Object.values(diffMap).some(c => c >= 2);
-      const hasDoubleSum = Object.values(sumMap).some(c => c >= 2);
-
-      const oneWayDiff = sums.length === 0;
-      const diffDominant = hasDoubleDiff && !hasDoubleSum;
-      const sumDominant = hasDoubleSum && !hasDoubleDiff;
-      const mixedDominant = hasDoubleDiff && hasDoubleSum;
-      const scattered = !oneWayDiff && !hasDoubleDiff && !hasDoubleSum;
-
-      const xRepeatCount = roomFeatures.countDigit(x);
-      const xEatRepeat = xRepeatCount >= 2;
-
-      return {
-        seat,
-        x,
-        xIndex,
-        xRepeatCount,
-        xEatRepeat,
-        others,
-        diffsAll,
-        diffs,
-        sumsAll,
-        sums,
-        diffMap,
-        diffAllMap,
-        sumMap,
-        hasRoomRepeat: roomFeatures.hasRepeat,
-        hasDoubleDiff,
-        hasDoubleSum,
-        oneWayDiff,
-        diffDominant,
-        sumDominant,
-        mixedDominant,
-        scattered,
-        hasDiff: n => diffs.includes(n),
-        hasSum: n => sums.includes(n),
-        diffCount: n => diffMap[n] || 0,
-        diffAllCount: n => diffAllMap[n] || 0,
-        sumCount: n => sumMap[n] || 0
-      };
-    }
-
-    function getHardBlockReason(f, r) {
-      if (f.x === 8 && f.xEatRepeat && r.edgeDiff === 0) {
-        return "硬过滤：X=8 + X吃重 + 首尾差0。80498 5号 -1690 已验证为危险结构。";
-      }
-
-      if ((f.seat === 5 || f.seat === 6) && f.x === 8 && f.xEatRepeat) {
-        return "硬过滤：5/6号 X=8 吃重类暂不进，避免重复8结构大输。";
-      }
-
-      return "";
-    }
-
-    function getStructureTag(f) {
-      if (f.mixedDominant) return "混合主导";
-      if (f.oneWayDiff) return "单向差";
-      if (f.diffDominant) return "差主导";
-      if (f.sumDominant) return "和主导";
-      if (f.scattered) return "散核";
-      return "普通";
-    }
-
-    function getGradeShort(grade) {
-      if (grade.includes("黄金池")) return "A档";
-      if (grade.includes("逻辑池")) return "B档";
-      return "观察";
+    function move(a, b) {
+      if (a < b) return "升";
+      if (a > b) return "降";
+      return "平";
     }
 
     function analyzeRoom(room) {
-      const digits = room.split("").map(Number);
-      const roomFeatures = analyzeRoomFeatures(digits);
-      const allSeats = [];
+      const d = room.split("").map(Number);
+      const [A, B, C, D, E] = d;
+      const digitMap = countMap(d);
+
+      const lowCount = d.filter(isLow).length;
+      const highCount = d.filter(isHigh).length;
+
+      const leftSum = A + B;
+      const rightSum = D + E;
+      const lrDiff = Math.abs(leftSum - rightSum);
+
+      const edgeDiff = Math.abs(A - E);
+      const innerDiff = Math.abs(B - D);
+      const mirrorDiff = edgeDiff + innerDiff;
+
+      const trend = [
+        move(A, B),
+        move(B, C),
+        move(C, D),
+        move(D, E)
+      ];
+
+      const trendCode = trend.join("");
+
+      const repeatDigits = Object.keys(digitMap).map(Number).filter(n => digitMap[n] >= 2);
+      const hasRepeat = repeatDigits.length > 0;
+      const hasLowRepeat = repeatDigits.some(isLow);
+      const hasHighRepeat = repeatDigits.some(isHigh);
+
+      const features = {
+        room,
+        digits: d,
+        A, B, C, D, E,
+
+        lowCount,
+        highCount,
+        hlPattern: d.map(hl).join(""),
+        oddEvenPattern: d.map(oe).join(""),
+
+        leftSum,
+        rightSum,
+        lrDiff,
+        leftStrong: leftSum > rightSum,
+        rightStrong: rightSum > leftSum,
+
+        edgeDiff,
+        edgeSum: A + E,
+        edgeSameParity: A % 2 === E % 2,
+        edgeSameHL: hl(A) === hl(E),
+
+        innerDiff,
+        innerSum: B + D,
+        innerSameParity: B % 2 === D % 2,
+        innerSameHL: hl(B) === hl(D),
+
+        mirrorDiff,
+
+        tailRise: D < E,
+        tailFall: D > E,
+        tailFlat: D === E,
+
+        trend,
+        trendCode,
+
+        hasRepeat,
+        repeatDigits,
+        hasLowRepeat,
+        hasHighRepeat,
+
+        AERepeat: A === E,
+        BERepeat: B === E,
+        CERepeat: C === E,
+        CDRepeat: C === D,
+        DERepeat: D === E,
+        BCRepeat: B === C,
+        ABRepeat: A === B,
+
+        centerMax: C === Math.max(...d),
+        centerMin: C === Math.min(...d),
+        centerLow: isLow(C),
+        centerHigh: isHigh(C),
+
+        leftHighRightLow: isHigh(A) && isHigh(B) && isLow(D) && isLow(E),
+        highHighLowLowLow: isHigh(A) && isHigh(B) && isLow(C) && isLow(D) && isLow(E),
+
+        roomBlack: false,
+        roomBlackReasons: []
+      };
+
+      features.roomBlackReasons = BLACK_RULES
+        .filter(b => b.test && b.test(features))
+        .map(b => b.name);
+
+      features.roomBlack = features.roomBlackReasons.length > 0;
+
+      return features;
+    }
+
+    function getSeatX(r, seat) {
+      if (seat === 1) return r.A;
+      if (seat === 2) return r.B;
+      if (seat === 3) return r.C;
+      if (seat === 4) return r.D;
+      return r.E;
+    }
+
+    function getSeatBlockReasons(seat, r) {
+      return BLACK_RULES
+        .filter(b => b.testSeat && b.testSeat(seat, r))
+        .map(b => b.name);
+    }
+
+    function analyzeSeats(r) {
+      const seats = [];
 
       for (let seat = 1; seat <= 6; seat++) {
-        const f = analyzeSeat(digits, seat, roomFeatures);
-        const blockReason = getHardBlockReason(f, roomFeatures);
+        const x = getSeatX(r, seat);
+        const blockReasons = getSeatBlockReasons(seat, r);
+        const blocked = r.roomBlack || blockReasons.length > 0;
 
         let hits = [];
-        if (!blockReason) {
-          hits = COMBOS.filter(c => c.test(f, roomFeatures));
+        if (!blocked) {
+          hits = RULES.filter(rule => rule.test(seat, r));
         }
 
-        allSeats.push({ ...f, hits, blockReason });
+        seats.push({
+          seat,
+          x,
+          blocked,
+          blockReasons: r.roomBlack ? r.roomBlackReasons : blockReasons,
+          hits
+        });
       }
 
-      const matches = [];
-      allSeats.forEach(f => {
-        f.hits.forEach(combo => {
-          matches.push({
-            seat: f.seat,
-            x: f.x,
-            combo
-          });
-        });
-      });
-
-      matches.sort((a, b) => {
-        if (a.combo.id !== b.combo.id) return a.combo.id - b.combo.id;
-        return a.seat - b.seat;
-      });
-
-      const seatMap = new Map();
-
-      matches.forEach(m => {
-        if (!seatMap.has(m.seat)) {
-          seatMap.set(m.seat, {
-            seat: m.seat,
-            x: m.x,
-            bestCombo: m.combo,
-            combos: [m.combo]
-          });
-        } else {
-          seatMap.get(m.seat).combos.push(m.combo);
-          seatMap.get(m.seat).combos.sort((a, b) => a.id - b.id);
-          seatMap.get(m.seat).bestCombo = seatMap.get(m.seat).combos[0];
-        }
-      });
-
-      const uniqueMatches = Array.from(seatMap.values());
-
-      uniqueMatches.sort((a, b) => {
-        if (a.bestCombo.id !== b.bestCombo.id) return a.bestCombo.id - b.bestCombo.id;
-        return a.seat - b.seat;
-      });
-
-      return {
-        room,
-        digits,
-        roomFeatures,
-        allSeats,
-        matches,
-        uniqueMatches,
-        main: uniqueMatches[0] || null,
-        top3: uniqueMatches.slice(0, 3)
-      };
+      return seats;
     }
 
     function run() {
@@ -758,9 +738,12 @@
         return;
       }
 
-      const data = analyzeRoom(room);
-      renderResult(data);
-      saveHistory(data);
+      const r = analyzeRoom(room);
+      const seats = analyzeSeats(r);
+      const picks = seats.filter(s => s.hits.length > 0);
+
+      renderResult(r, seats, picks);
+      saveHistory(r, picks);
       renderHistory();
     }
 
@@ -774,130 +757,97 @@
       `;
     }
 
-    function renderRoomFeatureLine(data) {
-      const r = data.roomFeatures;
+    function renderRoomLine(r) {
       return `
-        房号结构：
-        跨度=${r.span}；
-        低位=${r.lowCount}个，高位=${r.highCount}个；
-        首尾差=${r.edgeDiff}；
-        首尾和=${r.edgeSum}；
-        ${r.hasRepeat ? "有重号" : "无重号"}；
-        ${r.hasDigit(8) ? "含8" : "不含8"}；
-        ${r.hasDigit(9) ? "含9" : "不含9"}
+        ABCDE = ${r.A}${r.B}${r.C}${r.D}${r.E}<br>
+        高低排列：${r.hlPattern}｜奇偶排列：${r.oddEvenPattern}<br>
+        低${r.lowCount}高${r.highCount}｜走势：${r.trendCode}<br>
+        首尾差=${r.edgeDiff}｜内镜差=${r.innerDiff}｜镜像总差=${r.mirrorDiff}<br>
+        左半区=${r.leftSum}｜右半区=${r.rightSum}｜左右差=${r.lrDiff}<br>
+        重号：${r.hasRepeat ? r.repeatDigits.join("、") : "无"}
       `;
     }
 
-    function renderResult(data) {
+    function renderResult(r, seats, picks) {
       const box = document.getElementById("result");
 
-      if (!data.main) {
+      if (!picks.length) {
         box.className = "result show";
         box.innerHTML = `
-          <span class="badge no">不进房</span>
-          <div class="big">${data.room}</div>
+          <span class="badge no">不推荐</span>
+          ${r.roomBlack ? `<span class="badge warn">命中黑名单</span>` : ""}
+          <div class="big">${r.room}</div>
           <div class="desc">
-            原因：未命中抓奖大王 v0.4 绝对逻辑组合。<br>
-            ${renderRoomFeatureLine(data)}
+            ${r.roomBlack ? `黑名单：${r.roomBlackReasons.join("、")}<br>` : "原因：未命中正式推荐结构。<br>"}
+            ${renderRoomLine(r)}
           </div>
-          ${renderDebug(data)}
+          ${renderDebug(r, seats)}
         `;
         return;
       }
 
-      const main = data.main;
-      const top3 = data.top3 || [];
+      const pickNames = picks.map(p => `${p.seat}号`).join("、");
 
-      const top3Html = top3.map((m, i) => {
-        const comboNames = m.combos
-          .sort((a, b) => a.id - b.id)
-          .map(c => `${c.name}（${getGradeShort(c.grade)}）`)
-          .join("、");
+      const pickHtml = picks.map((p, i) => {
+        const comboNames = p.hits.map(h => h.name).join("、");
+        const comboStats = p.hits.map(h => h.stat).join("<br>");
 
         return `
           <div class="pick ${i === 0 ? "main" : ""}">
             <div class="pick-title">
-              ${i === 0 ? "🔥主推" : "⚡备选"}｜${m.seat}号｜${m.bestCombo.name}
+              ${i === 0 ? "🔥推荐" : "⚡同时命中"}｜${p.seat}号｜X=${p.x}
             </div>
             <div class="pick-rule">
-              X=${m.x}<br>
-              最高优先级：${m.bestCombo.grade}<br>
-              历史回测：${m.bestCombo.stat}<br>
-              同位命中：${comboNames}
+              命中结构：${comboNames}<br>
+              ${comboStats}
             </div>
           </div>
         `;
       }).join("");
 
-      const allHits = data.uniqueMatches
-        .map(m => {
-          const comboNames = m.combos
-            .sort((a, b) => a.id - b.id)
-            .map(c => `${c.name}（${getGradeShort(c.grade)}）`)
-            .join("、");
-
-          return `${m.seat}号｜X=${m.x}｜${comboNames}`;
-        })
-        .join("<br>");
-
       box.className = "result show";
       box.innerHTML = `
         <span class="badge ok">建议进房</span>
-        <span class="badge warn">${main.bestCombo.grade}</span>
+        <span class="badge warn">结构指纹命中</span>
 
         <div class="big">
-          推荐位（最多3个不同位子）
+          推荐：${pickNames}
         </div>
 
         <div class="pick-list">
-          ${top3Html}
+          ${pickHtml}
         </div>
 
         <div class="desc" style="margin-top:12px;">
-          房号：<b>${data.room}</b><br>
-          ${renderRoomFeatureLine(data)}<br>
-          最高优先级命中：<b>${main.bestCombo.name}</b><br>
-          主推：<b>${main.seat}号</b>｜X=${main.x}
+          房号：<b>${r.room}</b><br>
+          ${renderRoomLine(r)}
         </div>
 
         <div class="grid">
-          <div class="stat"><div class="v">${MODEL_STAT.hit}</div><div class="k">命中进房</div></div>
+          <div class="stat"><div class="v">${MODEL_STAT.hit}</div><div class="k">历史命中</div></div>
           <div class="stat"><div class="v">${MODEL_STAT.rate}</div><div class="k">进房率</div></div>
           <div class="stat"><div class="v">${MODEL_STAT.winRate}</div><div class="k">胜率</div></div>
-          <div class="stat"><div class="v">${MODEL_STAT.score}</div><div class="k">总得分</div></div>
+          <div class="stat"><div class="v">${MODEL_STAT.score}</div><div class="k">净分</div></div>
         </div>
 
-        <div class="combo" style="margin-top:12px;">
-          <div class="name">全部命中位子（已按位子合并）</div>
-          <div class="rule">${allHits}</div>
-        </div>
-
-        ${renderDebug(data)}
+        ${renderDebug(r, seats)}
       `;
     }
 
-    function renderDebug(data) {
-      const r = data.roomFeatures;
-
-      const rows = data.allSeats.map(f => {
-        let hitNames = "无";
-        if (f.blockReason) {
-          hitNames = f.blockReason;
-        } else if (f.hits.length) {
-          hitNames = f.hits.map(h => h.name).join("、");
+    function renderDebug(r, seats) {
+      const rows = seats.map(s => {
+        let status = "无";
+        if (s.blocked) {
+          status = "过滤：" + s.blockReasons.join("、");
+        } else if (s.hits.length) {
+          status = s.hits.map(h => h.name).join("、");
         }
 
         return `
           <tr>
-            <td>${f.seat}号</td>
-            <td>${f.x}</td>
-            <td>${f.xEatRepeat ? `是×${f.xRepeatCount}` : "否"}</td>
-            <td>${formatMap(f.diffMap, "差")}</td>
-            <td>${formatMap(f.sumMap, "和")}</td>
-            <td>${formatDoubleKeys(f.diffMap, "双差")}</td>
-            <td>${formatDoubleKeys(f.sumMap, "双和")}</td>
-            <td>${getStructureTag(f)}</td>
-            <td>${hitNames}</td>
+            <td>${s.seat}号</td>
+            <td>${s.x}</td>
+            <td>${status}</td>
           </tr>
         `;
       }).join("");
@@ -907,20 +857,14 @@
           <table>
             <thead>
               <tr>
-                <th colspan="9">
-                  房号结构：跨度${r.span}｜低${r.lowCount}高${r.highCount}｜首尾差${r.edgeDiff}｜首尾和${r.edgeSum}｜${r.hasRepeat ? "有重号" : "无重号"}｜${r.hasDigit(8) ? "含8" : "不含8"}｜${r.hasDigit(9) ? "含9" : "不含9"}
+                <th colspan="3">
+                  房号结构：${r.hlPattern}｜${r.oddEvenPattern}｜走势${r.trendCode}｜左右差${r.lrDiff}｜镜像差${r.mirrorDiff}｜${r.hasRepeat ? "有重号" : "无重号"}
                 </th>
               </tr>
               <tr>
                 <th>位子</th>
                 <th>X</th>
-                <th>X吃重</th>
-                <th>差值</th>
-                <th>和值</th>
-                <th>双差</th>
-                <th>双和</th>
-                <th>结构</th>
-                <th>命中组合/过滤</th>
+                <th>推荐/过滤原因</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -929,23 +873,21 @@
       `;
     }
 
-    function saveHistory(data) {
+    function saveHistory(r, picks) {
       const item = {
-        room: data.room,
+        room: r.room,
         time: new Date().toLocaleString(),
-        seat: data.main ? data.main.seat : null,
-        combo: data.main ? data.main.bestCombo.name : "未命中",
-        top3: data.top3 ? data.top3.map(m => `${m.seat}号-${m.bestCombo.name}`).join("；") : ""
+        result: picks.length ? picks.map(p => `${p.seat}号`).join("、") : "不推荐"
       };
 
-      const list = JSON.parse(localStorage.getItem("zjdw_v04_history") || "[]");
+      const list = JSON.parse(localStorage.getItem("zjdw_v10_history") || "[]");
       list.unshift(item);
-      localStorage.setItem("zjdw_v04_history", JSON.stringify(list.slice(0, 30)));
+      localStorage.setItem("zjdw_v10_history", JSON.stringify(list.slice(0, 30)));
     }
 
     function renderHistory() {
       const box = document.getElementById("historyBox");
-      const list = JSON.parse(localStorage.getItem("zjdw_v04_history") || "[]");
+      const list = JSON.parse(localStorage.getItem("zjdw_v10_history") || "[]");
 
       if (!list.length) {
         box.innerHTML = "暂无记录";
@@ -956,8 +898,7 @@
         <div class="history-item">
           <div class="history-left">${item.room}</div>
           <div class="history-right">
-            ${item.seat ? `主推${item.seat}号` : "不进房"}<br>
-            ${item.combo}<br>
+            ${item.result}<br>
             ${item.time}
           </div>
         </div>
@@ -965,18 +906,28 @@
     }
 
     function clearHistory() {
-      localStorage.removeItem("zjdw_v04_history");
+      localStorage.removeItem("zjdw_v10_history");
       renderHistory();
     }
 
     function renderComboList() {
       const box = document.getElementById("comboList");
-      box.innerHTML = COMBOS.map(c => `
+
+      const blackHtml = BLACK_RULES.map((b, i) => `
         <div class="combo">
-          <div class="name">${c.id}. ${c.name}｜${c.grade}</div>
-          <div class="rule">${c.rule}<br>${c.stat}</div>
+          <div class="name">黑名单${i + 1}. ${b.name}</div>
+          <div class="rule">${b.rule}</div>
         </div>
       `).join("");
+
+      const ruleHtml = RULES.map(r => `
+        <div class="combo">
+          <div class="name">${r.id}. ${r.name}｜${r.grade}</div>
+          <div class="rule">${r.rule}<br>${r.stat}</div>
+        </div>
+      `).join("");
+
+      box.innerHTML = blackHtml + ruleHtml;
     }
 
     document.getElementById("roomInput").addEventListener("input", e => {
