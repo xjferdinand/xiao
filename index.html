@@ -2,8 +2,13 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>5124587｜小老鼠 v1.0 实战核位模型</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+
+  <title>5142983｜小墨镜 v1.0 差值组合模型</title>
+
   <style>
     :root {
       --bg: #f7f3ec;
@@ -15,6 +20,7 @@
       --red2: #b8342b;
       --green: #1f9d67;
       --orange: #d98c22;
+      --blue: #315eae;
       --border: #eadccc;
       --shadow: 0 14px 36px rgba(70, 48, 28, 0.12);
     }
@@ -27,11 +33,28 @@
       margin: 0;
       min-height: 100vh;
       background:
-        radial-gradient(circle at top left, rgba(217, 75, 61, 0.12), transparent 28%),
-        radial-gradient(circle at bottom right, rgba(217, 140, 34, 0.12), transparent 26%),
+        radial-gradient(
+          circle at top left,
+          rgba(217, 75, 61, 0.12),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at bottom right,
+          rgba(217, 140, 34, 0.12),
+          transparent 26%
+        ),
         var(--bg);
+
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "PingFang SC",
+        "Microsoft YaHei",
+        Arial,
+        sans-serif;
+
       padding: 22px 14px 42px;
     }
 
@@ -55,7 +78,7 @@
     .sub {
       color: var(--muted);
       font-size: 14px;
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
     .panel {
@@ -169,7 +192,7 @@
 
     .badge.blue {
       background: rgba(60, 120, 220, 0.10);
-      color: #315eae;
+      color: var(--blue);
       border: 1px solid rgba(60, 120, 220, 0.22);
     }
 
@@ -230,6 +253,14 @@
       padding: 12px;
     }
 
+    .combo.grade-a {
+      border-color: rgba(31, 157, 103, 0.30);
+    }
+
+    .combo.grade-b {
+      border-color: rgba(217, 140, 34, 0.32);
+    }
+
     .combo .name {
       font-weight: 1000;
       margin-bottom: 6px;
@@ -238,7 +269,7 @@
     .combo .rule {
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.55;
+      line-height: 1.6;
     }
 
     .pick-list {
@@ -259,6 +290,14 @@
       background: #fff4ee;
     }
 
+    .pick.grade-a {
+      box-shadow: inset 4px 0 0 rgba(31, 157, 103, 0.68);
+    }
+
+    .pick.grade-b {
+      box-shadow: inset 4px 0 0 rgba(217, 140, 34, 0.72);
+    }
+
     .pick .pick-title {
       font-weight: 1000;
       margin-bottom: 6px;
@@ -267,7 +306,7 @@
     .pick .pick-rule {
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.55;
+      line-height: 1.6;
     }
 
     .debug {
@@ -285,7 +324,8 @@
       border: 1px solid var(--border);
     }
 
-    th, td {
+    th,
+    td {
       padding: 9px 8px;
       border-bottom: 1px solid #f0e2d3;
       font-size: 12px;
@@ -332,7 +372,7 @@
       text-align: center;
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.6;
+      line-height: 1.65;
       margin-top: 16px;
     }
 
@@ -379,15 +419,18 @@
 
 <body>
   <div class="wrap">
+
     <div class="hero">
-      <div class="title">5124587｜小老鼠 v1.0 实战核位模型</div>
+      <div class="title">5142983｜小墨镜 v1.0 差值组合模型</div>
+
       <div class="sub">
-        60局去重库｜座位X差值核 + 命中输局排雷｜最多输出3个推荐位｜无命中直接跳
+        50局去重库｜座位X差值组合｜只输出正式A/B档｜最多同时推荐3个位子
       </div>
     </div>
 
     <div class="panel">
       <div class="section-title">输入5位房号</div>
+
       <div class="input-row">
         <input
           id="roomInput"
@@ -395,9 +438,10 @@
           inputmode="numeric"
           pattern="[0-9]*"
           maxlength="5"
-          placeholder="例如 36082"
+          placeholder="例如 60526"
           autocomplete="off"
         />
+
         <button class="btn-main" onclick="run()">开干</button>
       </div>
 
@@ -405,349 +449,664 @@
     </div>
 
     <div class="panel">
-      <div class="section-title">v1.0 实战回测口径</div>
-      <div class="grid">
-        <div class="stat"><div class="v">60局</div><div class="k">当前样本</div></div>
-        <div class="stat"><div class="v">4条</div><div class="k">主规则</div></div>
-        <div class="stat"><div class="v">最多3位</div><div class="k">输出上限</div></div>
-        <div class="stat"><div class="v">跳过</div><div class="k">无命中</div></div>
+      <div class="section-title">v1.0 AB档历史回测</div>
 
-        <div class="stat"><div class="v">5偶差3</div><div class="k">最稳规则</div></div>
-        <div class="stat"><div class="v">2差3无重</div><div class="k">新增规则</div></div>
-        <div class="stat"><div class="v">3差4排雷</div><div class="k">主攻规则</div></div>
-        <div class="stat"><div class="v">4低偶压</div><div class="k">观察规则</div></div>
+      <div class="grid">
+        <div class="stat">
+          <div class="v">50局</div>
+          <div class="k">总样本</div>
+        </div>
+
+        <div class="stat">
+          <div class="v">22局</div>
+          <div class="k">模型命中</div>
+        </div>
+
+        <div class="stat">
+          <div class="v">44.0%</div>
+          <div class="k">进房率</div>
+        </div>
+
+        <div class="stat">
+          <div class="v">77.3%</div>
+          <div class="k">胜率</div>
+        </div>
+
+        <div class="stat">
+          <div class="v">17胜5负</div>
+          <div class="k">胜负结果</div>
+        </div>
+
+        <div class="stat">
+          <div class="v">+13740</div>
+          <div class="k">总净分</div>
+        </div>
+
+        <div class="stat">
+          <div class="v">+624.5</div>
+          <div class="k">命中场均</div>
+        </div>
+
+        <div class="stat">
+          <div class="v">0局</div>
+          <div class="k">历史大输</div>
+        </div>
       </div>
-      <div class="desc" style="margin-top:12px;">
-        口诀：2号差3看B不重；3号差4看排雷；4号D低偶四压；5号E偶差3最稳。E9作废，3差5不硬进，6号暂不推荐。
+
+      <div class="desc" style="margin-top: 12px;">
+        当前模型仅使用正式A/B档。历史5局亏损均为小输，没有出现≤-500的大输。
+        同一个座位即使命中多条组合，也只计算并输出一次。
       </div>
     </div>
 
     <div class="panel">
-      <div class="section-title">模型规则池</div>
+      <div class="section-title">正式模型组合</div>
       <div class="combo-list" id="comboList"></div>
     </div>
 
     <div class="panel">
       <div class="section-title">
         历史记录
-        <button class="btn-small" onclick="clearHistory()" style="float:right;">清空</button>
+
+        <button
+          class="btn-small"
+          onclick="clearHistory()"
+          style="float: right;"
+        >
+          清空
+        </button>
       </div>
+
       <div id="historyBox" class="desc">暂无记录</div>
     </div>
 
     <div class="footer-note">
-      固定规则：房号ABCDE；1号=A，2号=B，3号=C，4号=D，5号=E，6号=E。差值=当前座位X与其余数字的绝对差。当前模型只输出正式推荐位，不输出已作废观察位。
+      固定规则：房号记作ABCDE；1号=A，2号=B，3号=C，4号=D，5号=E，6号=E。
+      当前座位X只与其余4位数字计算绝对差值。差0不作为有效差值组合。
+      未命中正式A/B档时直接跳过。
     </div>
   </div>
 
   <script>
     const MODEL_STAT = {
-      sample: "60局",
+      account: "小墨镜",
+      id: "5142983",
       version: "v1.0",
-      note: "座位X差值核 + 命中输局排雷"
+      sample: "50局",
+      hitCount: "22局",
+      hitRate: "44.0%",
+      winRate: "77.3%",
+      net: "+13740",
+      bigLoss: "0大输"
     };
 
+    /*
+      rank越小，优先级越高。
+
+      当一个房号同时命中超过3个位子时：
+      1. 先比较该座位命中的最高等级规则；
+      2. A档优先于B档；
+      3. 同档按历史强度rank排序；
+      4. 最多输出前三个位子。
+    */
+
     const RULES = [
+      /*
+        =========================
+        5号位 A档
+        =========================
+      */
+
       {
-        id: 1,
+        id: "A5-1",
         seat: 5,
+        grade: "A",
         rank: 1,
-        name: "5号｜E偶 + 差3",
-        grade: "A档｜当前最稳",
-        stat: "历史命中：36474、76592、53136、39380、59018｜5胜0负｜无大输",
-        rule: "5号取X=E。E必须为偶数，并且X与其他数字存在差3。只认偶数8核，E奇差3不硬进，E=9观察位已作废。",
-        test: (seat, r) => {
-          return seat === 5 && r.E % 2 === 0 && hasDiff(r, seat, 3);
+
+        name: "5号｜差2 + 差5",
+        shortName: "差2+差5",
+
+        gradeText: "A1档｜全局第一核心",
+
+        stat:
+          "历史3局3胜｜3局全部大赢｜净+4160｜0大输",
+
+        examples:
+          "72994 5号+600、73702 5号+1320、97705 5号+2240",
+
+        rule:
+          "5号取X=E。X与其余数字形成的有效差值中，必须同时存在差2和差5。",
+
+        test: (seat, room) => {
+          return (
+            seat === 5 &&
+            hasAllDiffs(room, seat, [2, 5])
+          );
         }
       },
+
       {
-        id: 2,
-        seat: 2,
+        id: "A5-2",
+        seat: 5,
+        grade: "A",
         rank: 2,
-        name: "2号｜差3 + B不重",
-        grade: "A观察｜新增可用",
-        stat: "历史命中：54575、48573、30789｜3胜0负｜净+2770｜无大输",
-        rule: "2号取X=B。必须存在差3，并且B不能重复，也就是不能有差0。2号差3怕B重，B重不爆发。",
-        test: (seat, r) => {
-          return seat === 2 && hasDiff(r, seat, 3) && !hasDiff(r, seat, 0);
+
+        name: "5号｜差2 + 差4",
+        shortName: "差2+差4",
+
+        gradeText: "A2档｜双大赢组合",
+
+        stat:
+          "历史2局2胜｜2局全部大赢｜净+3140｜0大输",
+
+        examples:
+          "97705 5号+2240、28746 5号+900",
+
+        rule:
+          "5号取X=E。X与其余数字形成的有效差值中，必须同时存在差2和差4。",
+
+        test: (seat, room) => {
+          return (
+            seat === 5 &&
+            hasAllDiffs(room, seat, [2, 4])
+          );
         }
       },
+
       {
-        id: 3,
-        seat: 3,
+        id: "A5-3",
+        seat: 5,
+        grade: "A",
         rank: 3,
-        name: "3号｜差4 + 排除重压房",
-        grade: "A观察｜主攻但要排雷",
-        stat: "历史强项：3号差4多次大赢；56226 3号-1360提示双对子重压要避",
-        rule: "3号取X=C。必须有差4；但遇到X成对 + 差4对象成对 + 双对子/偶数高压这类夹死结构，自动过滤。",
-        test: (seat, r) => {
-          return seat === 3 && hasDiff(r, seat, 4) && !isSeat3HeavyTrap(r);
+
+        name: "5号｜差1 + 差5",
+        shortName: "差1+差5",
+
+        gradeText: "A3档｜高爆发组合",
+
+        stat:
+          "历史3局2胜1小输｜2大赢｜净+2740｜0大输",
+
+        examples:
+          "73702 5号+1320、23718 5号+1450、95784 5号-30",
+
+        rule:
+          "5号取X=E。X与其余数字形成的有效差值中，必须同时存在差1和差5。",
+
+        test: (seat, room) => {
+          return (
+            seat === 5 &&
+            hasAllDiffs(room, seat, [1, 5])
+          );
         }
       },
+
+      /*
+        =========================
+        2号位 A档
+        =========================
+      */
+
       {
-        id: 4,
-        seat: 4,
+        id: "A2-1",
+        seat: 2,
+        grade: "A",
         rank: 4,
-        name: "4号｜D低1/2 + 偶四奇一",
-        grade: "B观察｜低X偶压",
-        stat: "历史命中：22526、22614｜2胜0负｜无大输；22526带差3+差4爆发",
-        rule: "4号取X=D。D必须为1或2，并且全房偶数4个、奇数1个。若同时带差3+差4，属于爆发加强。",
-        test: (seat, r) => {
-          return seat === 4 && (r.D === 1 || r.D === 2) && r.evenCount === 4 && r.oddCount === 1;
+
+        name: "2号｜差7 + 差8",
+        shortName: "差7+差8",
+
+        gradeText: "A档｜大差双核",
+
+        stat:
+          "历史2局2胜｜净+1520｜1大赢｜0大输",
+
+        examples:
+          "91848 2号+1260、61982 2号+260",
+
+        rule:
+          "2号取X=B。X与其余数字形成的有效差值中，必须同时存在差7和差8。",
+
+        test: (seat, room) => {
+          return (
+            seat === 2 &&
+            hasAllDiffs(room, seat, [7, 8])
+          );
+        }
+      },
+
+      /*
+        =========================
+        4号位 A档
+        =========================
+      */
+
+      {
+        id: "A4-1",
+        seat: 4,
+        grade: "A",
+        rank: 5,
+
+        name: "4号｜差3 + 差8",
+        shortName: "差3+差8",
+
+        gradeText: "A档｜高低拉开",
+
+        stat:
+          "历史2局2胜｜净+1290｜1大赢｜0大输",
+
+        examples:
+          "50082 4号+90、41916 4号+1200",
+
+        rule:
+          "4号取X=D。X与其余数字形成的有效差值中，必须同时存在差3和差8。",
+
+        test: (seat, room) => {
+          return (
+            seat === 4 &&
+            hasAllDiffs(room, seat, [3, 8])
+          );
+        }
+      },
+
+      /*
+        =========================
+        6号位 A档
+        =========================
+      */
+
+      {
+        id: "A6-1",
+        seat: 6,
+        grade: "A",
+        rank: 6,
+
+        name: "6号｜差3 + 差4",
+        shortName: "差3+差4",
+
+        gradeText: "A档｜双连续差值",
+
+        stat:
+          "历史2局2胜｜净+1780｜1大赢｜0大输",
+
+        examples:
+          "10064 6号+1290、91125 6号+490",
+
+        rule:
+          "6号与5号一样取X=E。X与其余数字形成的有效差值中，必须同时存在差3和差4。",
+
+        test: (seat, room) => {
+          return (
+            seat === 6 &&
+            hasAllDiffs(room, seat, [3, 4])
+          );
+        }
+      },
+
+      /*
+        =========================
+        3号位 A档
+        =========================
+      */
+
+      {
+        id: "A3-1",
+        seat: 3,
+        grade: "A",
+        rank: 7,
+
+        name: "3号｜差2 + 差3 + 差4",
+        shortName: "差2+差3+差4",
+
+        gradeText: "A档｜完整三差结构",
+
+        stat:
+          "历史2局2胜｜净+760｜1大赢｜0大输",
+
+        examples:
+          "20478 3号+610、54260 3号+150",
+
+        rule:
+          "3号取X=C。必须同时具备差2、差3和差4。不能只凭差3+差4单独推荐。",
+
+        test: (seat, room) => {
+          return (
+            seat === 3 &&
+            hasAllDiffs(room, seat, [2, 3, 4])
+          );
+        }
+      },
+
+      /*
+        =========================
+        1号位 A档
+        =========================
+      */
+
+      {
+        id: "A1-1",
+        seat: 1,
+        grade: "A",
+        rank: 8,
+
+        name: "1号｜差1 + 差2 + 差7",
+        shortName: "差1+差2+差7",
+
+        gradeText: "A档｜完整三差结构",
+
+        stat:
+          "历史3局2胜1小输｜净+1330｜1大赢｜0大输",
+
+        examples:
+          "75006 1号-420、70858 1号+1550、92784 1号+200",
+
+        rule:
+          "1号取X=A。必须同时具备差1、差2和差7。差1+差7单独出现不推荐。",
+
+        test: (seat, room) => {
+          return (
+            seat === 1 &&
+            hasAllDiffs(room, seat, [1, 2, 7])
+          );
+        }
+      },
+
+      /*
+        =========================
+        2号位 B档
+        =========================
+      */
+
+      {
+        id: "B2-1",
+        seat: 2,
+        grade: "B",
+        rank: 20,
+
+        name: "2号｜差1 + 差2",
+        shortName: "差1+差2",
+
+        gradeText: "B档｜低波动观察",
+
+        stat:
+          "历史3局1胜2小输｜净+450｜1大赢｜0大输",
+
+        examples:
+          "57821 2号-10、80162 2号-70、43411 2号+530",
+
+        rule:
+          "2号取X=B。X与其余数字形成的有效差值中，同时存在差1和差2。",
+
+        test: (seat, room) => {
+          return (
+            seat === 2 &&
+            hasAllDiffs(room, seat, [1, 2])
+          );
+        }
+      },
+
+      /*
+        =========================
+        6号位 B档
+        =========================
+      */
+
+      {
+        id: "B6-1",
+        seat: 6,
+        grade: "B",
+        rank: 21,
+
+        name: "6号｜差2 + 差3",
+        shortName: "差2+差3",
+
+        gradeText: "B档｜允许小输噪音",
+
+        stat:
+          "历史3局2胜1小输｜净+1420｜1大赢｜0大输",
+
+        examples:
+          "10064 6号+1290、77585 6号+410、10213 6号-280",
+
+        rule:
+          "6号取X=E。X与其余数字形成的有效差值中，同时存在差2和差3。",
+
+        test: (seat, room) => {
+          return (
+            seat === 6 &&
+            hasAllDiffs(room, seat, [2, 3])
+          );
         }
       }
     ];
 
-    const BLACK_RULES = [
-      {
-        name: "5号黑｜E奇差3",
-        rule: "5号虽然有差3，但E为奇数时历史已出现11255 -590、53639 -310等，不作为硬进。",
-        testSeat: (seat, r) => seat === 5 && r.E % 2 === 1 && hasDiff(r, seat, 3)
-      },
-      {
-        name: "5号黑｜E=9观察位作废",
-        rule: "E=9历史已被85809 -1010、53639 -310打穿，不能再观察。",
-        testSeat: (seat, r) => seat === 5 && r.E === 9
-      },
-      {
-        name: "5号黑｜只有7核差2",
-        rule: "5号+差2=7核无独立价值；69234 5号-710已验证。5号只认偶数差3。",
-        testSeat: (seat, r) => seat === 5 && hasDiff(r, seat, 2) && !hasDiff(r, seat, 3)
-      },
-      {
-        name: "2号黑｜B重复 / 差0",
-        rule: "2号差3若B重复，不爆发；94048、99829、66293等说明差0压制明显。",
-        testSeat: (seat, r) => seat === 2 && hasDiff(r, seat, 0)
-      },
-      {
-        name: "3号黑｜差5单独作废",
-        rule: "3号差5被18051 3号-580打穿，不能单独作为推荐位。",
-        testSeat: (seat, r) => seat === 3 && hasDiff(r, seat, 5) && !hasDiff(r, seat, 4)
-      },
-      {
-        name: "3号黑｜差4双对子重压",
-        rule: "3号差4遇到X成对、差4对象成对、双对子/偶数高压时危险，代表56226 3号-1360。",
-        testSeat: (seat, r) => seat === 3 && hasDiff(r, seat, 4) && isSeat3HeavyTrap(r)
-      },
-      {
-        name: "4号黑｜D高",
-        rule: "4号D为7/8等高位时历史偏雷，单差3/差4不推荐。",
-        testSeat: (seat, r) => seat === 4 && r.D >= 5
-      },
-      {
-        name: "6号黑｜当前不推荐",
-        rule: "6号命核也出现大输，当前版本不输出6号。",
-        testSeat: (seat, r) => seat === 6
-      },
-      {
-        name: "1号黑｜样本不足",
-        rule: "1号当前无大赢证据，暂不输出。",
-        testSeat: (seat, r) => seat === 1
-      }
-    ];
+    function countMap(arr) {
+      const map = {};
 
-    function isLow(n) {
-      return n >= 0 && n <= 4;
+      arr.forEach(value => {
+        map[value] = (map[value] || 0) + 1;
+      });
+
+      return map;
     }
 
-    function isHigh(n) {
-      return n >= 5 && n <= 9;
+    function isLow(number) {
+      return number >= 0 && number <= 4;
     }
 
-    function oe(n) {
-      return n % 2 === 0 ? "偶" : "奇";
+    function isHigh(number) {
+      return number >= 5 && number <= 9;
     }
 
-    function hl(n) {
-      return isLow(n) ? "低" : "高";
+    function oddEvenText(number) {
+      return number % 2 === 0 ? "偶" : "奇";
     }
 
-    function move(a, b) {
+    function highLowText(number) {
+      return isLow(number) ? "低" : "高";
+    }
+
+    function moveText(a, b) {
       if (a < b) return "升";
       if (a > b) return "降";
       return "平";
     }
 
-    function countMap(arr) {
-      const m = {};
-      arr.forEach(v => {
-        m[v] = (m[v] || 0) + 1;
-      });
-      return m;
+    function getSeatX(room, seat) {
+      if (seat === 1) return room.A;
+      if (seat === 2) return room.B;
+      if (seat === 3) return room.C;
+      if (seat === 4) return room.D;
+
+      // 5号和6号都取E
+      return room.E;
     }
 
-    function getSeatX(r, seat) {
-      if (seat === 1) return r.A;
-      if (seat === 2) return r.B;
-      if (seat === 3) return r.C;
-      if (seat === 4) return r.D;
-      return r.E;
+    function getSeatXPosition(seat) {
+      if (seat === 1) return "A";
+      if (seat === 2) return "B";
+      if (seat === 3) return "C";
+      if (seat === 4) return "D";
+
+      return "E";
     }
 
-    function getOtherDigits(r, seat) {
-      const arr = [
-        { pos: "A", v: r.A },
-        { pos: "B", v: r.B },
-        { pos: "C", v: r.C },
-        { pos: "D", v: r.D },
-        { pos: "E", v: r.E }
+    function getOtherDigits(room, seat) {
+      const allDigits = [
+        { pos: "A", value: room.A },
+        { pos: "B", value: room.B },
+        { pos: "C", value: room.C },
+        { pos: "D", value: room.D },
+        { pos: "E", value: room.E }
       ];
 
-      let xPos = "E";
-      if (seat === 1) xPos = "A";
-      if (seat === 2) xPos = "B";
-      if (seat === 3) xPos = "C";
-      if (seat === 4) xPos = "D";
-      if (seat === 5 || seat === 6) xPos = "E";
+      const xPosition = getSeatXPosition(seat);
 
-      return arr.filter(item => item.pos !== xPos);
+      return allDigits.filter(item => item.pos !== xPosition);
     }
 
-    function getDiffs(r, seat) {
-      const x = getSeatX(r, seat);
-      return getOtherDigits(r, seat).map(item => ({
-        pos: item.pos,
-        value: item.v,
-        diff: Math.abs(x - item.v)
-      }));
+    function getDiffDetails(room, seat) {
+      const x = getSeatX(room, seat);
+      const others = getOtherDigits(room, seat);
+
+      return others.map(item => {
+        const diff = Math.abs(x - item.value);
+
+        return {
+          pos: item.pos,
+          value: item.value,
+          diff,
+          valid: diff !== 0
+        };
+      });
     }
 
-    function hasDiff(r, seat, diff) {
-      return getDiffs(r, seat).some(d => d.diff === diff);
+    function getValidDiffSet(room, seat) {
+      const diffSet = new Set();
+
+      getDiffDetails(room, seat).forEach(item => {
+        if (item.diff !== 0) {
+          diffSet.add(item.diff);
+        }
+      });
+
+      return diffSet;
     }
 
-    function diffObjects(r, seat, diff) {
-      return getDiffs(r, seat).filter(d => d.diff === diff);
+    function hasDiff(room, seat, targetDiff) {
+      if (targetDiff === 0) {
+        return false;
+      }
+
+      return getValidDiffSet(room, seat).has(targetDiff);
     }
 
-    function hasPair(r) {
-      return Object.values(r.digitMap).some(c => c >= 2);
+    function hasAllDiffs(room, seat, targetDiffs) {
+      const diffSet = getValidDiffSet(room, seat);
+
+      return targetDiffs.every(diff => {
+        return diff !== 0 && diffSet.has(diff);
+      });
     }
 
-    function pairCount(r) {
-      return Object.values(r.digitMap).filter(c => c >= 2).length;
-    }
+    function analyzeRoom(roomNumber) {
+      const digits = roomNumber.split("").map(Number);
 
-    function hasTriple(r) {
-      return Object.values(r.digitMap).some(c => c >= 3);
-    }
+      const [A, B, C, D, E] = digits;
 
-    function isSeat3HeavyTrap(r) {
-      const seat = 3;
-      const x = r.C;
-      const xCount = r.digitMap[x] || 0;
-      const objs = diffObjects(r, seat, 4);
-      const diff4ObjectRepeated = objs.some(o => (r.digitMap[o.value] || 0) >= 2);
+      const digitMap = countMap(digits);
 
-      const doublePair = pairCount(r) >= 2;
-      const noZero = !r.digits.includes(0);
-      const evenPressure = r.evenCount >= 4;
+      const lowCount = digits.filter(isLow).length;
+      const highCount = digits.filter(isHigh).length;
 
-      return xCount >= 2 && diff4ObjectRepeated && (doublePair || evenPressure) && noZero;
-    }
-
-    function analyzeRoom(room) {
-      const d = room.split("").map(Number);
-      const [A, B, C, D, E] = d;
-      const digitMap = countMap(d);
-
-      const lowCount = d.filter(isLow).length;
-      const highCount = d.filter(isHigh).length;
-      const oddCount = d.filter(n => n % 2 === 1).length;
-      const evenCount = d.filter(n => n % 2 === 0).length;
+      const oddCount = digits.filter(number => number % 2 === 1).length;
+      const evenCount = digits.filter(number => number % 2 === 0).length;
 
       const leftSum = A + B;
       const rightSum = D + E;
-      const lrDiff = Math.abs(leftSum - rightSum);
+      const leftRightDiff = Math.abs(leftSum - rightSum);
 
       const edgeDiff = Math.abs(A - E);
       const innerDiff = Math.abs(B - D);
       const mirrorDiff = edgeDiff + innerDiff;
 
       const trend = [
-        move(A, B),
-        move(B, C),
-        move(C, D),
-        move(D, E)
+        moveText(A, B),
+        moveText(B, C),
+        moveText(C, D),
+        moveText(D, E)
       ];
-      const trendCode = trend.join("");
 
-      const repeatDigits = Object.keys(digitMap).map(Number).filter(n => digitMap[n] >= 2);
+      const repeatDigits = Object.keys(digitMap)
+        .map(Number)
+        .filter(number => digitMap[number] >= 2);
 
-      const features = {
-        room,
-        digits: d,
-        A, B, C, D, E,
+      return {
+        room: roomNumber,
+
+        digits,
         digitMap,
+
+        A,
+        B,
+        C,
+        D,
+        E,
 
         lowCount,
         highCount,
+
         oddCount,
         evenCount,
 
-        hlPattern: d.map(hl).join(""),
-        oddEvenPattern: d.map(oe).join(""),
+        highLowPattern: digits.map(highLowText).join(""),
+        oddEvenPattern: digits.map(oddEvenText).join(""),
 
         leftSum,
         rightSum,
-        lrDiff,
-        leftStrong: leftSum > rightSum,
-        rightStrong: rightSum > leftSum,
+        leftRightDiff,
 
         edgeDiff,
         innerDiff,
         mirrorDiff,
 
         trend,
-        trendCode,
+        trendCode: trend.join(""),
 
-        hasRepeat: repeatDigits.length > 0,
         repeatDigits,
-        pairNum: 0,
-        triple: false,
+        hasRepeat: repeatDigits.length > 0,
 
-        sum: d.reduce((a, b) => a + b, 0),
-
-        tailRise: D < E,
-        tailFall: D > E,
-        tailFlat: D === E
+        sum: digits.reduce((total, number) => total + number, 0)
       };
-
-      features.pairNum = pairCount(features);
-      features.triple = hasTriple(features);
-
-      return features;
     }
 
-    function getSeatBlockReasons(seat, r) {
-      return BLACK_RULES
-        .filter(b => b.testSeat && b.testSeat(seat, r))
-        .map(b => b.name);
+    function getGradeWeight(grade) {
+      return grade === "A" ? 1 : 2;
     }
 
-    function analyzeSeats(r) {
+    function analyzeSeats(room) {
       const seats = [];
 
       for (let seat = 1; seat <= 6; seat++) {
-        const x = getSeatX(r, seat);
-        const diffs = getDiffs(r, seat);
-        const diffText = diffs.map(d => `${d.pos}${d.value}=差${d.diff}`).join(" / ");
+        const x = getSeatX(room, seat);
 
-        const blockReasons = getSeatBlockReasons(seat, r);
-        const softBlocked = blockReasons.length > 0;
+        const diffDetails = getDiffDetails(room, seat);
+        const validDiffSet = getValidDiffSet(room, seat);
 
-        let hits = [];
-        if (!softBlocked) {
-          hits = RULES.filter(rule => rule.test(seat, r));
-        }
+        const diffText = diffDetails
+          .map(item => {
+            if (item.diff === 0) {
+              return `${item.pos}${item.value}=差0（不计）`;
+            }
+
+            return `${item.pos}${item.value}=差${item.diff}`;
+          })
+          .join(" / ");
+
+        const validDiffText = Array.from(validDiffSet)
+          .sort((a, b) => a - b)
+          .map(diff => `差${diff}`)
+          .join("、");
+
+        const hits = RULES
+          .filter(rule => rule.test(seat, room))
+          .sort((a, b) => {
+            const gradeCompare =
+              getGradeWeight(a.grade) - getGradeWeight(b.grade);
+
+            if (gradeCompare !== 0) {
+              return gradeCompare;
+            }
+
+            return a.rank - b.rank;
+          });
 
         seats.push({
           seat,
           x,
-          diffs,
+          diffDetails,
           diffText,
-          blocked: softBlocked,
-          blockReasons,
+          validDiffText: validDiffText || "无有效差值",
           hits
         });
       }
@@ -755,105 +1114,208 @@
       return seats;
     }
 
+    function getSeatBestRule(seatResult) {
+      if (!seatResult.hits.length) {
+        return null;
+      }
+
+      return seatResult.hits[0];
+    }
+
     function sortPicks(picks) {
       return picks.sort((a, b) => {
-        const ar = Math.min(...a.hits.map(h => h.rank));
-        const br = Math.min(...b.hits.map(h => h.rank));
-        return ar - br;
+        const aBest = getSeatBestRule(a);
+        const bBest = getSeatBestRule(b);
+
+        const gradeCompare =
+          getGradeWeight(aBest.grade) -
+          getGradeWeight(bBest.grade);
+
+        if (gradeCompare !== 0) {
+          return gradeCompare;
+        }
+
+        if (aBest.rank !== bBest.rank) {
+          return aBest.rank - bBest.rank;
+        }
+
+        return a.seat - b.seat;
       });
     }
 
     function run() {
       const input = document.getElementById("roomInput");
-      let room = input.value.replace(/\D/g, "").slice(0, 5);
-      input.value = room;
 
-      if (room.length !== 5) {
-        showError("请输入5位数字房号");
+      let roomNumber = input.value
+        .replace(/\D/g, "")
+        .slice(0, 5);
+
+      input.value = roomNumber;
+
+      if (roomNumber.length !== 5) {
+        showError("请输入完整的5位数字房号。");
         return;
       }
 
-      const r = analyzeRoom(room);
-      const seats = analyzeSeats(r);
-      const picks = sortPicks(seats.filter(s => s.hits.length > 0)).slice(0, 3);
+      const room = analyzeRoom(roomNumber);
+      const seats = analyzeSeats(room);
 
-      renderResult(r, seats, picks);
-      saveHistory(r, picks);
+      const allPicks = sortPicks(
+        seats.filter(seatResult => seatResult.hits.length > 0)
+      );
+
+      const finalPicks = allPicks.slice(0, 3);
+      const hiddenPickCount = Math.max(0, allPicks.length - 3);
+
+      renderResult(
+        room,
+        seats,
+        finalPicks,
+        hiddenPickCount
+      );
+
+      saveHistory(room, finalPicks, hiddenPickCount);
       renderHistory();
     }
 
-    function showError(msg) {
+    function showError(message) {
       const box = document.getElementById("result");
+
       box.className = "result show";
+
       box.innerHTML = `
         <span class="badge no">输入错误</span>
+
         <div class="big">不处理</div>
-        <div class="desc">${msg}</div>
+
+        <div class="desc">
+          ${message}
+        </div>
       `;
     }
 
-    function renderRoomLine(r) {
+    function renderRoomLine(room) {
       return `
-        ABCDE = ${r.A}${r.B}${r.C}${r.D}${r.E}<br>
-        高低排列：${r.hlPattern}｜奇偶排列：${r.oddEvenPattern}<br>
-        低${r.lowCount}高${r.highCount}｜奇${r.oddCount}偶${r.evenCount}｜总和=${r.sum}<br>
-        走势：${r.trendCode}｜左右差=${r.lrDiff}｜镜像差=${r.mirrorDiff}<br>
-        重号：${r.hasRepeat ? r.repeatDigits.join("、") : "无"}｜对子数=${r.pairNum}｜三重=${r.triple ? "有" : "无"}
+        ABCDE=${room.A}${room.B}${room.C}${room.D}${room.E}<br>
+
+        高低排列：${room.highLowPattern}
+        ｜奇偶排列：${room.oddEvenPattern}<br>
+
+        低${room.lowCount}高${room.highCount}
+        ｜奇${room.oddCount}偶${room.evenCount}
+        ｜总和=${room.sum}<br>
+
+        走势：${room.trendCode}
+        ｜左右差=${room.leftRightDiff}
+        ｜镜像差=${room.mirrorDiff}<br>
+
+        重号：${
+          room.hasRepeat
+            ? room.repeatDigits.join("、")
+            : "无"
+        }
       `;
     }
 
-    function renderResult(r, seats, picks) {
+    function renderResult(
+      room,
+      seats,
+      picks,
+      hiddenPickCount
+    ) {
       const box = document.getElementById("result");
 
       if (!picks.length) {
         box.className = "result show";
+
         box.innerHTML = `
           <span class="badge no">跳过</span>
-          <div class="big">${r.room}</div>
+
+          <div class="big">${room.room}</div>
+
           <div class="desc">
-            原因：未命中正式推荐结构，或命中但被排雷过滤。<br>
-            ${renderRoomLine(r)}
+            当前1至6号位均未命中正式A/B档差值组合，不推荐进房。<br><br>
+
+            ${renderRoomLine(room)}
           </div>
-          ${renderDebug(r, seats)}
+
+          ${renderDebug(room, seats)}
         `;
+
         return;
       }
 
-      const pickNames = picks.map(p => `${p.seat}号`).join("、");
+      const pickNames = picks
+        .map(pick => `${pick.seat}号`)
+        .join("、");
 
-      const pickHtml = picks.map((p, i) => {
-        const comboNames = p.hits.map(h => h.name).join("、");
-        const comboStats = p.hits.map(h => h.stat).join("<br>");
-        const comboRules = p.hits.map(h => h.rule).join("<br>");
+      const pickHtml = picks
+        .map((pick, index) => {
+          const bestRule = getSeatBestRule(pick);
 
-        let extra = "";
-        if (p.seat === 4 && hasDiff(r, 4, 3) && hasDiff(r, 4, 4)) {
-          extra = `<br><b>加强：</b>4号同时带差3+差4，属于4号爆发加强。`;
-        }
-        if (p.seat === 3 && hasDiff(r, 3, 4) && hasDiff(r, 3, 7)) {
-          extra = `<br><b>提醒：</b>3号差4主门命中，同时带大差7，属于强波动房。`;
-        }
+          const allHitNames = pick.hits
+            .map(rule => `${rule.grade}档 ${rule.shortName}`)
+            .join("、");
 
-        return `
-          <div class="pick ${i === 0 ? "main" : ""}">
-            <div class="pick-title">
-              ${i === 0 ? "🔥优先推荐" : "⚡同时命中"}｜${p.seat}号｜X=${p.x}
+          const allRuleDetails = pick.hits
+            .map(rule => {
+              return `
+                <div style="margin-top:8px;">
+                  <b>${rule.name}｜${rule.gradeText}</b><br>
+                  ${rule.stat}<br>
+                  ${rule.rule}<br>
+                  历史：${rule.examples}
+                </div>
+              `;
+            })
+            .join("");
+
+          return `
+            <div
+              class="
+                pick
+                ${index === 0 ? "main" : ""}
+                ${bestRule.grade === "A" ? "grade-a" : "grade-b"}
+              "
+            >
+              <div class="pick-title">
+                ${
+                  index === 0
+                    ? "🔥优先推荐"
+                    : "⚡同时命中"
+                }
+                ｜${pick.seat}号
+                ｜X=${pick.x}
+                ｜${bestRule.grade}档
+              </div>
+
+              <div class="pick-rule">
+                命中组合：${allHitNames}<br>
+                当前有效差值：${pick.validDiffText}<br>
+                差值拆解：${pick.diffText}
+
+                ${allRuleDetails}
+              </div>
             </div>
-            <div class="pick-rule">
-              命中结构：${comboNames}<br>
-              ${comboStats}<br>
-              ${comboRules}
-              ${extra}<br>
-              当前差值：${p.diffText}
+          `;
+        })
+        .join("");
+
+      const hiddenText =
+        hiddenPickCount > 0
+          ? `
+            <div class="desc" style="margin-top:10px;">
+              该房间还有${hiddenPickCount}个位子命中，但模型按优先级只输出前3位。
             </div>
-          </div>
-        `;
-      }).join("");
+          `
+          : "";
 
       box.className = "result show";
+
       box.innerHTML = `
         <span class="badge ok">建议进房</span>
         <span class="badge warn">最多3位</span>
+        <span class="badge blue">A档优先</span>
 
         <div class="big">
           推荐：${pickNames}
@@ -863,127 +1325,227 @@
           ${pickHtml}
         </div>
 
-        <div class="desc" style="margin-top:12px;">
-          房号：<b>${r.room}</b><br>
-          ${renderRoomLine(r)}
+        ${hiddenText}
+
+        <div class="desc" style="margin-top:14px;">
+          房号：<b>${room.room}</b><br>
+          ${renderRoomLine(room)}
         </div>
 
         <div class="grid">
-          <div class="stat"><div class="v">${MODEL_STAT.sample}</div><div class="k">样本库</div></div>
-          <div class="stat"><div class="v">${MODEL_STAT.version}</div><div class="k">版本</div></div>
-          <div class="stat"><div class="v">4条</div><div class="k">主规则</div></div>
-          <div class="stat"><div class="v">≤3位</div><div class="k">推荐上限</div></div>
+          <div class="stat">
+            <div class="v">${MODEL_STAT.sample}</div>
+            <div class="k">样本库</div>
+          </div>
+
+          <div class="stat">
+            <div class="v">${MODEL_STAT.hitCount}</div>
+            <div class="k">历史命中</div>
+          </div>
+
+          <div class="stat">
+            <div class="v">${MODEL_STAT.winRate}</div>
+            <div class="k">历史胜率</div>
+          </div>
+
+          <div class="stat">
+            <div class="v">${MODEL_STAT.bigLoss}</div>
+            <div class="k">安全口径</div>
+          </div>
         </div>
 
-        ${renderDebug(r, seats)}
+        ${renderDebug(room, seats)}
       `;
     }
 
-    function renderDebug(r, seats) {
-      const rows = seats.map(s => {
-        let status = "无命中";
-        if (s.blocked) {
-          status = "过滤：" + s.blockReasons.join("、");
-        } else if (s.hits.length) {
-          status = "推荐：" + s.hits.map(h => h.name).join("、");
-        }
+    function renderDebug(room, seats) {
+      const rows = seats
+        .map(seatResult => {
+          let status = "无命中";
 
-        return `
-          <tr>
-            <td>${s.seat}号</td>
-            <td>${s.x}</td>
-            <td>${s.diffText}</td>
-            <td>${status}</td>
-          </tr>
-        `;
-      }).join("");
+          if (seatResult.hits.length) {
+            status = seatResult.hits
+              .map(rule => {
+                return `${rule.grade}档：${rule.shortName}`;
+              })
+              .join("、");
+          }
+
+          return `
+            <tr>
+              <td>${seatResult.seat}号</td>
+              <td>${seatResult.x}</td>
+              <td>${seatResult.validDiffText}</td>
+              <td>${seatResult.diffText}</td>
+              <td>${status}</td>
+            </tr>
+          `;
+        })
+        .join("");
 
       return `
         <div class="debug">
           <table>
             <thead>
               <tr>
-                <th colspan="4">
-                  房号结构：${r.hlPattern}｜${r.oddEvenPattern}｜奇${r.oddCount}偶${r.evenCount}｜总和${r.sum}｜走势${r.trendCode}｜${r.hasRepeat ? "有重号" : "无重号"}
+                <th colspan="5">
+                  房号结构：
+                  ${room.highLowPattern}
+                  ｜${room.oddEvenPattern}
+                  ｜奇${room.oddCount}偶${room.evenCount}
+                  ｜总和${room.sum}
+                  ｜走势${room.trendCode}
+                  ｜${room.hasRepeat ? "有重号" : "无重号"}
                 </th>
               </tr>
+
               <tr>
                 <th>位子</th>
                 <th>X</th>
-                <th>差值拆解</th>
-                <th>推荐/过滤原因</th>
+                <th>有效差值</th>
+                <th>完整差值拆解</th>
+                <th>模型结果</th>
               </tr>
             </thead>
-            <tbody>${rows}</tbody>
+
+            <tbody>
+              ${rows}
+            </tbody>
           </table>
         </div>
       `;
     }
 
-    function saveHistory(r, picks) {
+    function saveHistory(
+      room,
+      picks,
+      hiddenPickCount
+    ) {
       const item = {
-        room: r.room,
+        room: room.room,
+
         time: new Date().toLocaleString(),
-        result: picks.length ? picks.map(p => `${p.seat}号`).join("、") : "跳过"
+
+        result: picks.length
+          ? picks.map(pick => `${pick.seat}号`).join("、")
+          : "跳过",
+
+        hiddenPickCount
       };
 
-      const list = JSON.parse(localStorage.getItem("xiaolaoshu_v10_history") || "[]");
+      const key = "xiaomojing_5142983_v10_history";
+
+      const list = JSON.parse(
+        localStorage.getItem(key) || "[]"
+      );
+
       list.unshift(item);
-      localStorage.setItem("xiaolaoshu_v10_history", JSON.stringify(list.slice(0, 30)));
+
+      localStorage.setItem(
+        key,
+        JSON.stringify(list.slice(0, 30))
+      );
     }
 
     function renderHistory() {
       const box = document.getElementById("historyBox");
-      const list = JSON.parse(localStorage.getItem("xiaolaoshu_v10_history") || "[]");
+      const key = "xiaomojing_5142983_v10_history";
+
+      const list = JSON.parse(
+        localStorage.getItem(key) || "[]"
+      );
 
       if (!list.length) {
         box.innerHTML = "暂无记录";
         return;
       }
 
-      box.innerHTML = list.map(item => `
-        <div class="history-item">
-          <div class="history-left">${item.room}</div>
-          <div class="history-right">
-            ${item.result}<br>
-            ${item.time}
-          </div>
-        </div>
-      `).join("");
+      box.innerHTML = list
+        .map(item => {
+          const hiddenText =
+            item.hiddenPickCount > 0
+              ? `<br>另有${item.hiddenPickCount}位因超过上限未显示`
+              : "";
+
+          return `
+            <div class="history-item">
+              <div class="history-left">
+                ${item.room}
+              </div>
+
+              <div class="history-right">
+                ${item.result}
+                ${hiddenText}<br>
+                ${item.time}
+              </div>
+            </div>
+          `;
+        })
+        .join("");
     }
 
     function clearHistory() {
-      localStorage.removeItem("xiaolaoshu_v10_history");
+      localStorage.removeItem(
+        "xiaomojing_5142983_v10_history"
+      );
+
       renderHistory();
     }
 
     function renderComboList() {
       const box = document.getElementById("comboList");
 
-      const blackHtml = BLACK_RULES.map((b, i) => `
-        <div class="combo">
-          <div class="name">排雷${i + 1}. ${b.name}</div>
-          <div class="rule">${b.rule}</div>
-        </div>
-      `).join("");
+      const orderedRules = [...RULES].sort((a, b) => {
+        const gradeCompare =
+          getGradeWeight(a.grade) -
+          getGradeWeight(b.grade);
 
-      const ruleHtml = RULES.map(r => `
-        <div class="combo">
-          <div class="name">${r.id}. ${r.name}｜${r.grade}</div>
-          <div class="rule">${r.rule}<br>${r.stat}</div>
-        </div>
-      `).join("");
+        if (gradeCompare !== 0) {
+          return gradeCompare;
+        }
 
-      box.innerHTML = blackHtml + ruleHtml;
+        return a.rank - b.rank;
+      });
+
+      box.innerHTML = orderedRules
+        .map(rule => {
+          return `
+            <div
+              class="
+                combo
+                ${rule.grade === "A" ? "grade-a" : "grade-b"}
+              "
+            >
+              <div class="name">
+                ${rule.id}｜${rule.name}｜${rule.gradeText}
+              </div>
+
+              <div class="rule">
+                ${rule.rule}<br>
+                ${rule.stat}<br>
+                历史命中：${rule.examples}
+              </div>
+            </div>
+          `;
+        })
+        .join("");
     }
 
-    document.getElementById("roomInput").addEventListener("input", e => {
-      e.target.value = e.target.value.replace(/\D/g, "").slice(0, 5);
-    });
+    document
+      .getElementById("roomInput")
+      .addEventListener("input", event => {
+        event.target.value = event.target.value
+          .replace(/\D/g, "")
+          .slice(0, 5);
+      });
 
-    document.getElementById("roomInput").addEventListener("keydown", e => {
-      if (e.key === "Enter") run();
-    });
+    document
+      .getElementById("roomInput")
+      .addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          run();
+        }
+      });
 
     renderComboList();
     renderHistory();
